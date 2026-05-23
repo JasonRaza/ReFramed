@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem C:\\\\Users\\\\Jason\\\\ReFramed | Where-Object { $_.Name -ne \"node_modules\" -and $_.Name -ne \".git\" } | Select-Object Name, Attributes)",
+      "PowerShell(Get-ChildItem C:\\\\Users\\\\Jason\\\\ReFramed -Force | Where-Object { $_.Name -ne \"node_modules\" -and $_.Name -ne \".git\" } | Format-List Name, Attributes, Length)",
+      "PowerShell(Get-ChildItem C:\\\\Users\\\\Jason\\\\ReFramed\\\\src -Recurse -Force | Where-Object { !$_.PSIsContainer } | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Users\\\\Jason\\\\ReFramed\\\\\", \"\"\\) })",
+      "PowerShell(cd C:\\\\Users\\\\Jason\\\\ReFramed; Get-ChildItem src -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object { $_.FullName.Replace\\(\"$PWD\\\\src\\\\\", \"\"\\) } | Format-Table -HideTableHeaders)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "PowerShell(New-Item *)"
+    ]
+  }
+}

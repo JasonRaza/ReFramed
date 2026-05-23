@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
 import {
   createRoom,
   joinRoom,
@@ -20,10 +21,19 @@ export default function LobbyPage() {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("menu");
   const [room, setRoom] = useState<Room | null>(null);
+  const [appUrl, setAppUrl] = useState("");
   const [joinInput, setJoinInput] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
+
+  // QR code URL — only meaningful on production (Vercel)
+  useEffect(() => {
+    const origin = window.location.origin;
+    if (!origin.includes("localhost") && !origin.includes("127.0.0.1")) {
+      setAppUrl(origin);
+    }
+  }, []);
 
   // Clean up subscription on unmount
   useEffect(() => {
@@ -178,6 +188,16 @@ export default function LobbyPage() {
                 {busy ? "…" : "Rejoindre"}
               </button>
             </div>
+
+            {/* QR code — only shown on production */}
+            {appUrl && (
+              <div className="flex flex-col items-center gap-2 pt-2">
+                <div className="rounded-2xl bg-white p-3">
+                  <QRCodeSVG value={appUrl} size={120} />
+                </div>
+                <p className="text-xs text-white/30">Scanne pour rejoindre depuis un autre téléphone</p>
+              </div>
+            )}
           </>
         )}
 

@@ -23,12 +23,15 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
     "@supabase/supabase-js": "^2.106.1",
+    "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "next": "^14.2.35",
+    "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^25.9.1",
     "@types/react": "^18.3.29",
     "@types/react-dom": "^18.3.7",
