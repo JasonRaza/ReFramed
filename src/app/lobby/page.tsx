@@ -233,6 +233,12 @@ export default function LobbyPage() {
                 {player2Here ? "✓ Joueur 2 rejoint — prêt à démarrer !" : "En attente du joueur 2…"}
               </div>
 
+              {error && (
+                <p className="rounded-2xl bg-red-500/20 border border-red-500/30 px-4 py-3 text-sm text-red-300 text-center">
+                  {error}
+                </p>
+              )}
+
               <button
                 className="w-full rounded-2xl bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-40"
                 onClick={handleStart}

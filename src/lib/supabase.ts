@@ -92,7 +92,10 @@ export async function updateRoomState(
     .select()
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    console.error("updateRoomState failed:", error?.message, error?.details);
+    return null;
+  }
   return data as Room;
 }
 
