@@ -2,12 +2,19 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useGameRoom } from "@/hooks/useGameRoom";
+import { playDrumroll, stopDrumroll } from "@/lib/sounds";
 
 export default function ScoringPage({ params }: { params: { roomId: string } }) {
   const { roomId } = params;
   const { room, loading, error, isHost } = useGameRoom(roomId);
   const calledRef = useRef(false);
   const [dotStep, setDotStep] = useState(0);
+
+  // Drumroll on mount — stops automatically or when unmounting
+  useEffect(() => {
+    void playDrumroll(2500);
+    return () => stopDrumroll();
+  }, []);
 
   // Animate the 4 dots
   useEffect(() => {

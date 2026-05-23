@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useGameRoom } from "@/hooks/useGameRoom";
+import { playFanfare } from "@/lib/sounds";
 import poses from "@/lib/poses.json";
 import type { Pose } from "@/lib/game";
 
@@ -85,10 +86,11 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
     ? (poses as Pose[]).find((p) => p.id === room.current_pose_id) ?? null
     : null;
 
-  // Confetti burst on mount
+  // Confetti + fanfare on mount
   useEffect(() => {
     const t = setTimeout(launchConfetti, 400);
-    return () => clearTimeout(t);
+    const s = setTimeout(() => { void playFanfare(); }, 300);
+    return () => { clearTimeout(t); clearTimeout(s); };
   }, []);
 
   if (loading) return <Shell><Spinner /></Shell>;

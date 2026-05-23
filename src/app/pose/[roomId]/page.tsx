@@ -6,6 +6,7 @@ import CountdownTimer from "@/components/CountdownTimer";
 import { useGameRoom } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
 import { uploadPlayerImage, savePlayerImageUrl } from "@/lib/storage";
+import { playCameraShutter } from "@/lib/sounds";
 import poses from "@/lib/poses.json";
 import type { Pose } from "@/lib/game";
 
@@ -60,6 +61,7 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
   const handleCapture = useCallback(
     async (base64: string) => {
       if (!playerId) return;
+      void playCameraShutter();
       setUploading(true);
       setUploadError("");
       setUploaded(false);
