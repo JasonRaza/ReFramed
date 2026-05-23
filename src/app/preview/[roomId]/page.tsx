@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useGameRoom } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
@@ -9,8 +9,8 @@ import type { Pose } from "@/lib/game";
 
 const DURATION = 5;
 
-export default function PreviewPage({ params }: { params: Promise<{ roomId: string }> }) {
-  const { roomId } = use(params);
+export default function PreviewPage({ params }: { params: { roomId: string } }) {
+  const { roomId } = params;
   const { room, loading, error, isHost } = useGameRoom(roomId);
   const [seconds, setSeconds] = useState(DURATION);
 

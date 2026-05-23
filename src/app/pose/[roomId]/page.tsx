@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Camera, { type CameraHandle } from "@/components/Camera";
 import CountdownTimer from "@/components/CountdownTimer";
 import { useGameRoom } from "@/hooks/useGameRoom";
@@ -11,8 +11,8 @@ import type { Pose } from "@/lib/game";
 
 const DURATION = 15;
 
-export default function PosePage({ params }: { params: Promise<{ roomId: string }> }) {
-  const { roomId } = use(params);
+export default function PosePage({ params }: { params: { roomId: string } }) {
+  const { roomId } = params;
   const { room, loading, error, isHost, playerId } = useGameRoom(roomId);
   const cameraRef = useRef<CameraHandle>(null);
 

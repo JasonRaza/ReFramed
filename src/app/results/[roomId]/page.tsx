@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useGameRoom } from "@/hooks/useGameRoom";
@@ -75,8 +75,8 @@ function PlayerCard({
   );
 }
 
-export default function ResultsPage({ params }: { params: Promise<{ roomId: string }> }) {
-  const { roomId } = use(params);
+export default function ResultsPage({ params }: { params: { roomId: string } }) {
+  const { roomId } = params;
   const { room, loading, error, isHost } = useGameRoom(roomId);
   const router = useRouter();
 

@@ -1,13 +1,13 @@
 "use client";
 
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameRoom } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
 
 const DURATION = 15; // seconds to capture
 
-export default function CapturePage({ params }: { params: Promise<{ roomId: string }> }) {
-  const { roomId } = use(params);
+export default function CapturePage({ params }: { params: { roomId: string } }) {
+  const { roomId } = params;
   const { room, loading, error, isHost, playerId } = useGameRoom(roomId);
 
   const videoRef = useRef<HTMLVideoElement>(null);

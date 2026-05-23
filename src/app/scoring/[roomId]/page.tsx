@@ -1,10 +1,10 @@
 "use client";
 
-import { use, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useGameRoom } from "@/hooks/useGameRoom";
 
-export default function ScoringPage({ params }: { params: Promise<{ roomId: string }> }) {
-  const { roomId } = use(params);
+export default function ScoringPage({ params }: { params: { roomId: string } }) {
+  const { roomId } = params;
   const { room, loading, error, isHost } = useGameRoom(roomId);
   const calledRef = useRef(false);
 
