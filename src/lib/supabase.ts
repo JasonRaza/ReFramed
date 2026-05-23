@@ -71,6 +71,13 @@ export async function joinRoom(
   return data as Room;
 }
 
+export async function fetchRoom(roomId: string): Promise<Room | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("rooms").select("*").eq("id", roomId).single();
+  if (error || !data) return null;
+  return data as Room;
+}
+
 export async function updateRoomState(
   roomId: string,
   state: GameState,

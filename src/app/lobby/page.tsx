@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import {
   createRoom,
+  fetchRoom,
   joinRoom,
   startGame,
   subscribeToRoom,
@@ -43,6 +44,19 @@ export default function LobbyPage() {
       }
     };
   }, []);
+
+  // Poll every 3 s as a fallback when realtime isn't configured
+  useEffect(() => {
+    if (phase !== "host-waiting" || !room?.id) return;
+    const id = window.setInterval(async () => {
+      const latest = await fetchRoom(room.id);
+      if (latest) {
+        setRoom(latest);
+        if (latest.state === "PREVIEW") router.push(`/preview/${room.id}`);
+      }
+    }, 3000);
+    return () => window.clearInterval(id);
+  }, [phase, room?.id, router]);
 
   function subscribeAndWatch(roomId: string) {
     if (!supabase) return;
