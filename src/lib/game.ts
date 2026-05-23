@@ -13,7 +13,7 @@ export const STATE_ROUTE: Record<GameState, string> = {
   LOBBY: "/lobby",
   PREVIEW: "/preview",
   POSE: "/pose",
-  CAPTURE: "/pose", // CAPTURE is handled within the POSE route
+  CAPTURE: "/pose",
   SCORING: "/scoring",
   RESULTS: "/results",
 };
@@ -33,7 +33,7 @@ export type Room = {
   player2_roast: string | null;
   winner: string | null;
   scored: boolean;
-  phase_started_at: string | null;
+  preview_started_at: string | null;
   created_at: string;
 };
 

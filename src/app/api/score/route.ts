@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     winner: result.winner,
     scored: true,
     state: "RESULTS",
-    phase_started_at: new Date().toISOString(),
+    preview_started_at: new Date().toISOString(),
   }).eq("id", body.roomId);
 
   return NextResponse.json(result);

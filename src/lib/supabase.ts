@@ -80,7 +80,7 @@ export async function updateRoomState(
 
   const { data, error } = await supabase
     .from("rooms")
-    .update({ state, phase_started_at: new Date().toISOString(), ...extra })
+    .update({ state, preview_started_at: new Date().toISOString(), ...extra })
     .eq("id", roomId)
     .select()
     .single();

@@ -7,7 +7,6 @@ import { supabase, subscribeToRoom } from "@/lib/supabase";
 import { STATE_ROUTE } from "@/lib/game";
 import type { GameState, Room } from "@/lib/game";
 
-/** Stable per-device player ID — created on first call, stored in localStorage. */
 export function getPlayerId(): string {
   if (typeof window === "undefined") return "";
   let id = localStorage.getItem("reframed_player_id");
@@ -18,13 +17,6 @@ export function getPlayerId(): string {
   return id;
 }
 
-/**
- * Central room hook used by every game-phase page.
- *
- * - Fetches the room on mount and subscribes to Realtime updates.
- * - Automatically redirects both players when room.state changes.
- * - `isHost` is true when the current device is player1.
- */
 export function useGameRoom(roomId: string) {
   const router = useRouter();
   const pathname = usePathname();
@@ -41,7 +33,6 @@ export function useGameRoom(roomId: string) {
   useEffect(() => {
     if (!supabase || !roomId) return;
 
-    // Initial fetch
     supabase
       .from("rooms")
       .select("*")
@@ -63,7 +54,6 @@ export function useGameRoom(roomId: string) {
         }
       });
 
-    // Realtime subscription
     channelRef.current = subscribeToRoom(roomId, (updated) => {
       setRoom(updated);
       const expected = STATE_ROUTE[updated.state as GameState];

@@ -20,15 +20,15 @@ export default function PreviewPage({ params }: { params: Promise<{ roomId: stri
 
   // Server-synced countdown
   useEffect(() => {
-    if (!room?.phase_started_at) return;
+    if (!room?.preview_started_at) return;
     const tick = () => {
-      const elapsed = (Date.now() - new Date(room.phase_started_at!).getTime()) / 1000;
+      const elapsed = (Date.now() - new Date(room.preview_started_at!).getTime()) / 1000;
       setSeconds(Math.max(0, DURATION - Math.floor(elapsed)));
     };
     tick();
     const id = setInterval(tick, 500);
     return () => clearInterval(id);
-  }, [room?.phase_started_at]);
+  }, [room?.preview_started_at]);
 
   // Only the host drives PREVIEW → POSE
   useEffect(() => {

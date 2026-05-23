@@ -9,24 +9,35 @@ create table if not exists public.rooms (
   player2_image_url text,
   player1_score integer,
   player2_score integer,
+  player1_roast text,
+  player2_roast text,
   winner text,
+  scored boolean not null default false,
+  preview_started_at timestamptz,
   created_at timestamptz not null default now()
 );
 
 alter table public.rooms enable row level security;
 
 create policy "rooms are readable by players"
-  on public.rooms
-  for select
-  using (true);
+  on public.rooms for select using (true);
 
 create policy "rooms can be created by clients"
-  on public.rooms
-  for insert
-  with check (true);
+  on public.rooms for insert with check (true);
 
 create policy "rooms can be updated by clients"
-  on public.rooms
-  for update
-  using (true)
-  with check (true);
+  on public.rooms for update using (true) with check (true);
+
+-- Run these two statements in the Supabase SQL editor after applying this schema:
+--
+-- 1. Enable realtime on the rooms table:
+--    alter publication supabase_realtime add table public.rooms;
+--
+-- 2. Create the public storage bucket for player images:
+--    insert into storage.buckets (id, name, public)
+--    values ('player-images', 'player-images', true)
+--    on conflict do nothing;
+--
+-- 3. Allow public reads + authenticated writes on the bucket:
+--    create policy "images are public" on storage.objects for select using (bucket_id = 'player-images');
+--    create policy "anyone can upload images" on storage.objects for insert with check (bucket_id = 'player-images');

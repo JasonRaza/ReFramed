@@ -25,17 +25,17 @@ export default function PosePage({ params }: { params: Promise<{ roomId: string 
     ? (poses as Pose[]).find((p) => p.id === room.current_pose_id) ?? null
     : null;
 
-  // Server-synced countdown from phase_started_at
+  // Server-synced countdown from preview_started_at
   useEffect(() => {
-    if (!room?.phase_started_at) return;
+    if (!room?.preview_started_at) return;
     const tick = () => {
-      const elapsed = (Date.now() - new Date(room.phase_started_at!).getTime()) / 1000;
+      const elapsed = (Date.now() - new Date(room.preview_started_at!).getTime()) / 1000;
       setSeconds(Math.max(0, DURATION - Math.floor(elapsed)));
     };
     tick();
     const id = setInterval(tick, 500);
     return () => clearInterval(id);
-  }, [room?.phase_started_at]);
+  }, [room?.preview_started_at]);
 
   // Auto-capture when timer expires
   useEffect(() => {

@@ -20,10 +20,10 @@ export default function CapturePage({ params }: { params: Promise<{ roomId: stri
 
   // Server-synced countdown
   useEffect(() => {
-    if (!room?.phase_started_at) return;
+    if (!room?.preview_started_at) return;
 
     const update = () => {
-      const elapsed = (Date.now() - new Date(room.phase_started_at!).getTime()) / 1000;
+      const elapsed = (Date.now() - new Date(room.preview_started_at!).getTime()) / 1000;
       const remaining = Math.max(0, DURATION - Math.floor(elapsed));
       setSeconds(remaining);
     };
@@ -31,7 +31,7 @@ export default function CapturePage({ params }: { params: Promise<{ roomId: stri
     update();
     const id = setInterval(update, 500);
     return () => clearInterval(id);
-  }, [room?.phase_started_at]);
+  }, [room?.preview_started_at]);
 
   // Start camera when page loads
   useEffect(() => {
