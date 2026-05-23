@@ -7,12 +7,23 @@ import { supabase, subscribeToRoom } from "@/lib/supabase";
 import { STATE_ROUTE } from "@/lib/game";
 import type { GameState, Room } from "@/lib/game";
 
+function uuid(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback for HTTP / older mobile browsers
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 /** Stable per-device player ID — created on first call, stored in localStorage. */
 export function getPlayerId(): string {
   if (typeof window === "undefined") return "";
   let id = localStorage.getItem("reframed_player_id");
   if (!id) {
-    id = crypto.randomUUID();
+    id = uuid();
     localStorage.setItem("reframed_player_id", id);
   }
   return id;
