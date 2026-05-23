@@ -27,15 +27,18 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
 
   // Server-synced countdown from preview_started_at
   useEffect(() => {
-    if (!room?.preview_started_at) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ts = (room as any)?.preview_started_at as string | null | undefined;
+    if (!ts) return;
     const tick = () => {
-      const elapsed = (Date.now() - new Date(room.preview_started_at!).getTime()) / 1000;
+      const elapsed = (Date.now() - new Date(ts).getTime()) / 1000;
       setSeconds(Math.max(0, DURATION - Math.floor(elapsed)));
     };
     tick();
     const id = setInterval(tick, 500);
     return () => clearInterval(id);
-  }, [room?.preview_started_at]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }, [(room as any)?.preview_started_at]);
 
   // Auto-capture when timer expires
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
     if (room.player1_image_url && room.player2_image_url) {
       void updateRoomState(roomId, "SCORING");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.player1_image_url, room?.player2_image_url]);
 
   const handleCapture = useCallback(
@@ -97,7 +100,7 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
 
       {/* UI overlay */}
       <div className="relative flex flex-1 flex-col">
-        {/* Top bar */}
+        {/* Top bar: countdown left, pose name right */}
         <div className="flex items-start justify-between p-4">
           <div className="rounded-2xl bg-black/60 px-4 py-2 backdrop-blur-sm">
             <CountdownTimer seconds={seconds} urgent={seconds <= 8} />
@@ -105,8 +108,8 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
 
           {pose && (
             <div className="max-w-[140px] rounded-xl bg-black/60 px-3 py-2 text-right backdrop-blur-sm">
-              <p className="text-xs font-medium text-white/80 leading-tight">{pose.title}</p>
-              <p className="text-[10px] text-white/40 mt-0.5">{pose.artist}</p>
+              <p className="text-xs font-medium leading-tight text-white/80">{pose.title}</p>
+              <p className="mt-0.5 text-[10px] text-white/40">{pose.artist}</p>
             </div>
           )}
         </div>
@@ -134,15 +137,21 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
           )}
         </div>
 
-        {/* Capture button */}
+        {/* Action buttons */}
         {!uploaded && (
-          <div className="p-4 pb-8">
+          <div className="flex gap-3 p-4 pb-8">
             <button
-              className="w-full rounded-2xl bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-40"
+              className="min-h-[44px] flex-1 rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-40"
               onClick={() => cameraRef.current?.capture()}
               disabled={uploading}
             >
               {uploading ? "Envoi…" : "Capturer"}
+            </button>
+            <button
+              className="min-h-[44px] rounded-[14px] border border-white/20 bg-white/10 px-5 py-4 text-base font-medium active:scale-[0.98]"
+              onClick={handleRetake}
+            >
+              Reprendre
             </button>
           </div>
         )}
@@ -151,7 +160,7 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
   );
 }
 
-function Screen({ children }: { children: React.ReactNode }) {
+function Screen({ children }: { children?: React.ReactNode }) {
   return (
     <main className="flex min-h-dvh items-center justify-center">{children}</main>
   );

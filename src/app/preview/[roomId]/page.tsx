@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { useGameRoom } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
 import poses from "@/lib/poses.json";
 import type { Pose } from "@/lib/game";
+import PoseCard from "@/components/PoseCard";
+import CountdownTimer from "@/components/CountdownTimer";
 
 const DURATION = 5;
 
@@ -18,7 +19,7 @@ export default function PreviewPage({ params }: { params: { roomId: string } }) 
     ? (poses as Pose[]).find((p) => p.id === room.current_pose_id) ?? null
     : null;
 
-  // Server-synced countdown
+  // Server-synced countdown derived from preview_started_at
   useEffect(() => {
     if (!room?.preview_started_at) return;
     const tick = () => {
@@ -36,61 +37,44 @@ export default function PreviewPage({ params }: { params: { roomId: string } }) 
     void updateRoomState(roomId, "POSE");
   }, [isHost, seconds, roomId]);
 
-  if (loading || !pose) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-highlight" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center px-6 text-center">
-        <p className="text-red-400">{error}</p>
-      </div>
-    );
-  }
+  if (loading || !pose) return <FullScreenSpinner />;
+  if (error) return <FullScreenError message={error} />;
 
   const progress = seconds / DURATION;
 
   return (
     <main className="relative mx-auto flex min-h-dvh max-w-md flex-col overflow-hidden bg-black">
-      {/* Full-screen reference image */}
-      <div className="relative flex-1">
-        <Image
-          src={pose.imageUrl}
-          alt={pose.title}
-          fill
-          className="object-cover"
-          unoptimized
-          priority
-        />
+      {/* Full-screen pose image with gradient overlay */}
+      <PoseCard pose={pose} size="full" />
 
-        {/* Countdown bubble — top right */}
-        <div className="absolute right-4 top-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/90 shadow-glow">
-          <span className="text-2xl font-black tabular-nums">{seconds}</span>
-        </div>
-
-        {/* Bottom gradient with pose info */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pb-8 pt-20">
-          <div className="px-6">
-            <p className="text-xs uppercase tracking-[0.3em] text-purple-300">
-              Mémorise la pose
-            </p>
-            <h2 className="mt-1 text-3xl font-black leading-tight">{pose.title}</h2>
-            <p className="mt-1 text-sm text-white/50">{pose.artist}</p>
-          </div>
-        </div>
+      {/* Countdown bubble — top right, purple circle */}
+      <div className="absolute right-4 top-4 z-10">
+        <CountdownTimer seconds={seconds} />
       </div>
 
       {/* Depleting progress bar at very bottom */}
-      <div className="h-1 w-full bg-white/10">
+      <div className="absolute bottom-0 left-0 right-0 z-10 h-1 bg-white/10">
         <div
           className="h-full bg-highlight transition-all duration-500"
           style={{ width: `${progress * 100}%` }}
         />
       </div>
     </main>
+  );
+}
+
+function FullScreenSpinner() {
+  return (
+    <div className="flex min-h-dvh items-center justify-center">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-highlight" />
+    </div>
+  );
+}
+
+function FullScreenError({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-dvh items-center justify-center px-6 text-center">
+      <p className="text-red-400">{message}</p>
+    </div>
   );
 }
