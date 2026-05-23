@@ -8,22 +8,6 @@
     "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/56/The_Thinker%2C_Rodin.jpg"
   },
   {
-    "id": "david",
-    "title": "David",
-    "artist": "Michel-Ange",
-    "category": "sculpture",
-    "difficulty": 3,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a0/%27David%27_by_Michelangelo_Fir_JBU013.jpg"
-  },
-  {
-    "id": "venus-de-milo",
-    "title": "Vénus de Milo",
-    "artist": "Alexandros d'Antioche",
-    "category": "sculpture",
-    "difficulty": 2,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/66/Venus_de_Milo_Louvre_Ma399_n4.jpg"
-  },
-  {
     "id": "discobolus",
     "title": "Discobole",
     "artist": "Myron",
@@ -32,20 +16,12 @@
     "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Discobolus_in_National_Roman_Museum_Palazzo_Massimo_alle_Terme.JPG"
   },
   {
-    "id": "liberty-leading",
-    "title": "La Liberté guidant le peuple",
-    "artist": "Eugène Delacroix",
+    "id": "david",
+    "title": "David",
+    "artist": "Michel-Ange",
     "category": "sculpture",
-    "difficulty": 4,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Eug%C3%A8ne_Delacroix_-_La_libert%C3%A9_guidant_le_peuple.jpg"
-  },
-  {
-    "id": "rocky-steps",
-    "title": "Rocky sur les marches",
-    "artist": "John G. Avildsen",
-    "category": "cinema",
-    "difficulty": 2,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Rocky_statue_at_the_Philadelphia_Museum_of_Art.jpg"
+    "difficulty": 3,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a0/%27David%27_by_Michelangelo_Fir_JBU013.jpg"
   },
   {
     "id": "titanic-bow",
@@ -64,60 +40,12 @@
     "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0c/The_Matrix_Resurrections_logo.png"
   },
   {
-    "id": "chaplin-cane",
-    "title": "Charlot et sa canne",
-    "artist": "Charlie Chaplin",
+    "id": "dirty-dancing-lift",
+    "title": "Dirty Dancing, le porté",
+    "artist": "Emile Ardolino",
     "category": "cinema",
-    "difficulty": 3,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/00/Charlie_Chaplin.jpg"
-  },
-  {
-    "id": "marilyn-subway",
-    "title": "Marilyn, robe au vent",
-    "artist": "Billy Wilder",
-    "category": "cinema",
-    "difficulty": 3,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5c/Marilyn_Monroe_photo_pose_Seven_Year_Itch.jpg"
-  },
-  {
-    "id": "bolt-lightning",
-    "title": "L'éclair de Usain Bolt",
-    "artist": "Usain Bolt",
-    "category": "sport",
-    "difficulty": 2,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/91/Usain_Bolt_%28JAM%29_2016.jpg"
-  },
-  {
-    "id": "jordan-dunk",
-    "title": "Michael Jordan en dunk",
-    "artist": "Michael Jordan",
-    "category": "sport",
     "difficulty": 5,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Michael_Jordan_in_2014.jpg"
-  },
-  {
-    "id": "ali-victory",
-    "title": "Muhammad Ali victorieux",
-    "artist": "Neil Leifer",
-    "category": "sport",
-    "difficulty": 3,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Muhammad_Ali_NYWTS.jpg"
-  },
-  {
-    "id": "biles-salute",
-    "title": "Simone Biles au salut",
-    "artist": "Simone Biles",
-    "category": "sport",
-    "difficulty": 3,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Simone_Biles_Rio_2016.jpg"
-  },
-  {
-    "id": "ronaldo-siu",
-    "title": "Cristiano Ronaldo, célébration",
-    "artist": "Cristiano Ronaldo",
-    "category": "sport",
-    "difficulty": 2,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg"
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/No_image_available_500_x_500.svg/500px-No_image_available_500_x_500.svg.png"
   },
   {
     "id": "karate-kid",
@@ -128,35 +56,107 @@
     "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/52/Karate_Kid_logo.svg"
   },
   {
-    "id": "star-wars-duel",
-    "title": "Duel au sabre laser",
-    "artist": "George Lucas",
-    "category": "cinema",
-    "difficulty": 4,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg"
+    "id": "bolt-lightning",
+    "title": "L'éclair de Usain Bolt",
+    "artist": "Usain Bolt",
+    "category": "sport",
+    "difficulty": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/91/Usain_Bolt_%28JAM%29_2016.jpg"
   },
   {
-    "id": "apollo-belvedere",
-    "title": "Apollon du Belvédère",
-    "artist": "Leochares",
-    "category": "sculpture",
-    "difficulty": 4,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/11/Apollo_Belvedere%2C_Musei_Vaticani.jpg"
-  },
-  {
-    "id": "winged-victory",
-    "title": "Victoire de Samothrace",
-    "artist": "Art hellénistique",
-    "category": "sculpture",
+    "id": "ali-victory",
+    "title": "Muhammad Ali victorieux",
+    "artist": "Neil Leifer",
+    "category": "sport",
     "difficulty": 3,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5f/Victoire_de_Samothrace_-_vue_de_trois-quart_gauche%2C_gros_plan_de_la_statue_%282%29.jpg"
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Muhammad_Ali_NYWTS.jpg"
   },
   {
-    "id": "pele-kick",
-    "title": "Pelé, reprise acrobatique",
-    "artist": "Pelé",
+    "id": "spiderman-pointing",
+    "title": "Spider-Man, doigt pointé",
+    "artist": "Marvel",
+    "category": "cinema",
+    "difficulty": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/76/Amazing_Spider-Man_Vol_1_38.jpg"
+  },
+  {
+    "id": "pulp-fiction-dance",
+    "title": "Pulp Fiction, danse twist",
+    "artist": "Quentin Tarantino",
+    "category": "cinema",
+    "difficulty": 3,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/No_image_available_500_x_500.svg/500px-No_image_available_500_x_500.svg.png"
+  },
+  {
+    "id": "jordan-dunk",
+    "title": "Michael Jordan en dunk",
+    "artist": "Michael Jordan",
     "category": "sport",
     "difficulty": 5,
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Pele_con_brasil_%28cropped%29.jpg"
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Michael_Jordan_in_2014.jpg"
+  },
+  {
+    "id": "venus-de-milo",
+    "title": "Vénus de Milo",
+    "artist": "Alexandros d'Antioche",
+    "category": "sculpture",
+    "difficulty": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/66/Venus_de_Milo_Louvre_Ma399_n4.jpg"
+  },
+  {
+    "id": "saturday-night-fever",
+    "title": "Saturday Night Fever",
+    "artist": "John Badham",
+    "category": "cinema",
+    "difficulty": 3,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a4/John_Travolta_2012.jpg"
+  },
+  {
+    "id": "the-scream",
+    "title": "Le Cri",
+    "artist": "Edvard Munch",
+    "category": "peinture",
+    "difficulty": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Edvard_Munch%2C_1893%2C_The_Scream%2C_oil%2C_tempera_and_pastel_on_cardboard%2C_91_x_73_cm%2C_National_Gallery_of_Norway.jpg"
+  },
+  {
+    "id": "liberty-leading",
+    "title": "La Liberté guidant le peuple",
+    "artist": "Eugène Delacroix",
+    "category": "peinture",
+    "difficulty": 4,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a7/Eug%C3%A8ne_Delacroix_-_La_libert%C3%A9_guidant_le_peuple.jpg"
+  },
+  {
+    "id": "rocky-steps",
+    "title": "Rocky sur les marches",
+    "artist": "John G. Avildsen",
+    "category": "cinema",
+    "difficulty": 2,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Rocky_statue_at_the_Philadelphia_Museum_of_Art.jpg"
+  },
+  {
+    "id": "risky-business",
+    "title": "Risky Business, glissade",
+    "artist": "Paul Brickman",
+    "category": "cinema",
+    "difficulty": 3,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/Tom_Cruise_by_Gage_Skidmore.jpg"
+  },
+  {
+    "id": "singing-in-the-rain",
+    "title": "Singing in the Rain",
+    "artist": "Stanley Donen",
+    "category": "cinema",
+    "difficulty": 3,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Gene_Kelly_in_Singin%27_in_the_Rain_%28cropped%29.jpg"
+  },
+  {
+    "id": "chaplin-cane",
+    "title": "Charlot et sa canne",
+    "artist": "Charlie Chaplin",
+    "category": "cinema",
+    "difficulty": 3,
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/00/Charlie_Chaplin.jpg"
   }
 ]

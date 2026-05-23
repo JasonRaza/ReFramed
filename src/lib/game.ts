@@ -9,6 +9,15 @@ export const GAME_STATES = [
 
 export type GameState = (typeof GAME_STATES)[number];
 
+export const STATE_ROUTE: Record<GameState, string> = {
+  LOBBY: "/lobby",
+  PREVIEW: "/preview",
+  POSE: "/pose",
+  CAPTURE: "/capture",
+  SCORING: "/scoring",
+  RESULTS: "/results",
+};
+
 export type Room = {
   id: string;
   code: string;
@@ -21,6 +30,7 @@ export type Room = {
   player1_score: number | null;
   player2_score: number | null;
   winner: string | null;
+  phase_started_at: string | null;
   created_at: string;
 };
 
@@ -28,7 +38,7 @@ export type Pose = {
   id: string;
   title: string;
   artist: string;
-  category: "sculpture" | "cinema" | "sport";
+  category: "sculpture" | "cinema" | "sport" | "peinture";
   difficulty: 1 | 2 | 3 | 4 | 5;
   imageUrl: string;
 };
