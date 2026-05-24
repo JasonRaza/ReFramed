@@ -72,3 +72,4 @@ export function rankDeltaForResult(result: "win" | "loss" | "draw"): number {
   if (result === "loss") return -16;
   return 4;
 }
+

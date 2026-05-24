@@ -58,7 +58,7 @@ function PosBadge({ pos, isMe }: { pos: number; isMe: boolean }) {
   if (pos === 2) return <span className="text-base leading-none">🥈</span>;
   if (pos === 3) return <span className="text-base leading-none">🥉</span>;
   return (
-    <span className={cn("text-[12px] font-bold tabular-nums w-5 text-center", isMe ? "text-[#f6b73c]" : "text-[#555]")}>
+    <span className="text-[12px] font-bold tabular-nums w-5 text-center" style={{ color: isMe ? "#f6b73c" : "var(--text-muted)" }}>
       {pos}
     </span>
   );
@@ -73,11 +73,10 @@ function LeaderRow({ entry, pos }: { entry: LeaderEntry; pos: number }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl px-4 py-3 transition-colors",
-        entry.isMe
-          ? "bg-[#f6b73c]/8 border border-[#f6b73c]/20"
-          : "bg-[#1a1a1a] border border-[#222]",
+        "flex items-center gap-3 rounded-xl px-4 py-3 transition-colors border",
+        entry.isMe ? "bg-[#f6b73c]/8 border-[#f6b73c]/20" : "",
       )}
+      style={!entry.isMe ? { background: "var(--bg-surface)", borderColor: "var(--bg-border)" } : undefined}
     >
       {/* Position */}
       <div className="flex items-center justify-center w-6 flex-shrink-0">
@@ -89,7 +88,7 @@ function LeaderRow({ entry, pos }: { entry: LeaderEntry; pos: number }) {
 
       {/* Name + rank */}
       <div className="flex-1 min-w-0">
-        <p className={cn("text-[13px] font-semibold truncate", entry.isMe ? "text-[#f6b73c]" : "text-white")}>
+        <p className="text-[13px] font-semibold truncate" style={{ color: entry.isMe ? "#f6b73c" : "var(--text-primary)" }}>
           {entry.username}
           {entry.isMe && <span className="ml-1.5 text-[10px] font-medium text-[#f6b73c]/60">(toi)</span>}
         </p>
@@ -97,8 +96,8 @@ function LeaderRow({ entry, pos }: { entry: LeaderEntry; pos: number }) {
       </div>
 
       {/* Points */}
-      <p className="text-[12px] font-bold text-white tabular-nums flex-shrink-0">
-        {entry.rank_points} <span className="text-[#555] font-normal">pts</span>
+      <p className="text-[12px] font-bold tabular-nums flex-shrink-0" style={{ color: "var(--text-primary)" }}>
+        {entry.rank_points} <span className="font-normal" style={{ color: "var(--text-muted)" }}>pts</span>
       </p>
     </div>
   );
@@ -121,11 +120,11 @@ function SearchRow({
   const color = RANK_COLORS[label] ?? "#f6b73c";
 
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-[#1a1a1a] border border-[#222] px-4 py-3">
+    <div className="flex items-center gap-3 rounded-xl border px-4 py-3" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
       <Avatar avatar={entry.avatar} size="sm" />
 
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-white truncate">{entry.username}</p>
+        <p className="text-[13px] font-semibold truncate" style={{ color: "var(--text-primary)" }}>{entry.username}</p>
         <p className="text-[10px] font-medium" style={{ color }}>{label} · {entry.rank_points} pts</p>
       </div>
 
@@ -134,7 +133,8 @@ function SearchRow({
           <button
             onClick={() => onRemove(entry.id)}
             disabled={loading}
-            className="flex items-center gap-1.5 rounded-lg bg-[#222] border border-[#2a2a2a] px-3 py-1.5 text-[11px] font-medium text-[#555] transition-colors hover:border-red-500/30 hover:text-red-400 disabled:opacity-40"
+            className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-colors hover:border-red-500/30 hover:text-red-400 disabled:opacity-40"
+            style={{ background: "var(--bg-border)", borderColor: "var(--bg-border-subtle)", color: "var(--text-muted)" }}
           >
             <Check size={12} strokeWidth={2.5} />
             Ami
@@ -291,18 +291,20 @@ export default function RankingsPage() {
 
       {/* ── Search bar ─────────────────────────────────── */}
       <div className="relative flex items-center">
-        <Search size={15} className="absolute left-3.5 text-[#555]" strokeWidth={1.8} />
+        <Search size={15} className="absolute left-3.5" strokeWidth={1.8} style={{ color: "var(--text-muted)" }} />
         <input
           type="email"
           placeholder="Rechercher par courriel…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full rounded-xl bg-[#1a1a1a] border border-[#222] pl-10 pr-10 py-3 text-sm text-white placeholder:text-[#444] focus:outline-none focus:border-[#3a3a3a] transition-colors"
+          className="w-full rounded-xl border pl-10 pr-10 py-3 text-sm placeholder:text-[var(--text-faint)] focus:outline-none focus:border-[var(--text-faint)] transition-colors"
+          style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
         />
         {query && (
           <button
             onClick={() => setQuery("")}
-            className="absolute right-3 text-[#555] hover:text-[#888] transition-colors"
+            className="absolute right-3 transition-colors hover:text-[var(--text-primary)]"
+            style={{ color: "var(--text-muted)" }}
           >
             <X size={15} strokeWidth={1.8} />
           </button>
@@ -312,11 +314,11 @@ export default function RankingsPage() {
       {/* ── Search results ─────────────────────────────── */}
       {isSearching && (
         <div className="flex flex-col gap-2">
-          <p className="text-[11px] font-bold text-[#555] uppercase tracking-wider">
+          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
             {searching ? "Recherche…" : results.length === 0 ? "Aucun résultat" : `${results.length} résultat${results.length !== 1 ? "s" : ""}`}
           </p>
           {!searching && results.length === 0 && (
-            <p className="text-center text-[13px] text-[#444] py-6">Aucun joueur trouvé</p>
+            <p className="text-center text-[13px] py-6" style={{ color: "var(--text-faint)" }}>Aucun joueur trouvé</p>
           )}
           {results.map((r) => (
             <SearchRow

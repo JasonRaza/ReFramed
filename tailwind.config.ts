@@ -8,12 +8,12 @@ const config: Config = {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       colors: {
-        ink: "#0e0e0e",
+        ink: "var(--bg-base)",
         primary: "#7c3aed",
         highlight: "#a78bfa",
-        surface: "#1a1a1a",
-        "surface-hover": "#202020",
-        "surface-border": "#222222",
+        surface: "var(--bg-surface)",
+        "surface-hover": "var(--bg-hover)",
+        "surface-border": "var(--bg-border)",
         amber: { DEFAULT: "#f6b73c" },
       },
       boxShadow: {

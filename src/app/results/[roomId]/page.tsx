@@ -7,6 +7,8 @@ import { useGameRoom, usePose } from "@/hooks/useGameRoom";
 import { playFanfare } from "@/lib/sounds";
 import { startNextRankedRound, startNextRoyaleRound } from "@/lib/supabase";
 import { applyRankDeltaOnce, getRankSnapshot, rankDeltaForResult, type RankSnapshot } from "@/lib/rank";
+import { supabase } from "@/lib/supabase";
+import { getAuthUser, saveGameResultToDb } from "@/lib/auth";
 import Avatar, { DEFAULT_AVATAR } from "@/components/Avatar";
 import type { Pose } from "@/lib/game";
 
@@ -140,13 +142,46 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
   }, []);
 
   useEffect(() => {
-    if (!isRanked || !room) return;
-    if (!rankedMatchDone) {
+    if (!room) return;
+
+    // For ranked: wait until the full match is over before applying anything
+    if (isRanked && !rankedMatchDone) {
       setRank(getRankSnapshot());
       return;
     }
-    setRank(applyRankDeltaOnce(roomId, rankDelta));
-  }, [isRanked, rankedMatchDone, rankDelta, room, roomId]);
+
+    // Determine the actual result for ranked (match winner) vs other modes (round winner)
+    const matchResult: "win" | "loss" | "draw" = isRanked
+      ? rankedP1Rounds > rankedP2Rounds
+        ? localSlot === "player1" ? "win" : "loss"
+        : rankedP2Rounds > rankedP1Rounds
+          ? localSlot === "player2" ? "win" : "loss"
+          : "draw"
+      : localResult;
+
+    const myScore = localSlot === "player1"
+      ? (room as any).player1_score ?? 0
+      : (room as any).player2_score ?? 0;
+
+    // Save game stats to DB (idempotent)
+    void saveGameResultToDb(roomId, matchResult, myScore);
+
+    // Apply rank delta and sync to DB for ranked matches
+    if (isRanked) {
+      const newRank = applyRankDeltaOnce(roomId, rankDelta);
+      setRank(newRank);
+      getAuthUser().then((user) => {
+        if (user && supabase) {
+          void supabase
+            .from("user_profiles")
+            .update({ rank_points: newRank.points })
+            .eq("id", user.id);
+        }
+      });
+    } else {
+      setRank(getRankSnapshot());
+    }
+  }, [isRanked, rankedMatchDone, rankedP1Rounds, rankedP2Rounds, rankDelta, room, roomId, localSlot, localResult]);
 
   if (loading) return <Shell><Spinner /></Shell>;
   if (error) return <Shell><p className="text-red-400 text-sm">{error}</p></Shell>;

@@ -18,7 +18,7 @@ export default function RankBar({ rank }: Props) {
   const pct   = Math.round(rank.progress * 100);
 
   return (
-    <div className="rounded-lg bg-[#1a1a1a] border border-[#222] px-4 py-4">
+    <div className="rounded-lg border px-4 py-4" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
       {/* Top row: rank label + points */}
       <div className="flex items-center justify-between mb-3">
         <div>

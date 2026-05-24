@@ -74,16 +74,15 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       role="switch"
       aria-checked={on}
       onClick={onToggle}
-      className={cn(
-        "relative h-6 w-10 rounded-full transition-colors duration-200 flex-shrink-0",
-        on ? "bg-[#f6b73c]" : "bg-[#333]",
-      )}
+      className="relative h-7 w-12 rounded-full transition-colors duration-200 flex-shrink-0"
+      style={{ background: on ? "#f6b73c" : "var(--bg-border)" }}
     >
       <span
-        className={cn(
-          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200",
-          on ? "translate-x-4" : "translate-x-0.5",
-        )}
+        className="absolute top-1 h-5 w-5 rounded-full bg-white shadow"
+        style={{
+          transition: "left 0.2s ease",
+          left: on ? "2px" : "calc(100% - 22px)",
+        }}
       />
     </button>
   );

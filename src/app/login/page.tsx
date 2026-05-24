@@ -40,9 +40,9 @@ function AvatarPicker({
             onClick={() => onEmoji(a)}
             className={cn(
               "flex items-center justify-center rounded-lg aspect-square text-lg transition-all",
-              a === emoji ? "ring-2 ring-white/60 scale-105" : "bg-[#1e1e1e] hover:bg-[#252525]",
+              a === emoji ? "ring-2 ring-white/60 scale-105" : "hover:bg-[var(--bg-hover)]",
             )}
-            style={a === emoji ? { background: getBg(colorKey) } : {}}
+            style={a === emoji ? { background: getBg(colorKey) } : { background: "var(--bg-surface)" }}
           >
             {a}
           </button>
@@ -57,7 +57,7 @@ function AvatarPicker({
             className={cn(
               "flex-1 h-6 rounded-full transition-all",
               c.key === colorKey
-                ? "ring-2 ring-white ring-offset-1 ring-offset-[#111]"
+                ? "ring-2 ring-white ring-offset-1 ring-offset-[var(--bg-surface-2)]"
                 : "opacity-40 hover:opacity-70",
             )}
             style={{ background: c.bg }}
@@ -87,13 +87,18 @@ function Field({
 }) {
   return (
     <div className="relative flex items-center">
-      <Icon size={15} className="absolute left-3.5 text-[#555]" strokeWidth={1.8} />
+      <Icon size={15} className="absolute left-3.5" strokeWidth={1.8} style={{ color: "var(--text-muted)" }} />
       <input
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg bg-[#1a1a1a] border border-[#222] pl-10 pr-10 py-3 text-sm text-white placeholder:text-[#444] focus:outline-none focus:border-[#3a3a3a] transition-colors"
+        className="w-full rounded-lg border pl-10 pr-10 py-3 text-sm focus:outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--text-muted)]"
+        style={{
+          background: "var(--bg-surface)",
+          borderColor: "var(--bg-border)",
+          color: "var(--text-primary)",
+        }}
         autoComplete={type === "password" ? "current-password" : type === "email" ? "email" : "off"}
       />
       {right && <div className="absolute right-3">{right}</div>}
@@ -142,7 +147,8 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
           <button
             type="button"
             onClick={() => setShowPw((v) => !v)}
-            className="text-[#555] hover:text-[#888] transition-colors"
+            className="transition-colors"
+            style={{ color: "var(--text-muted)" }}
           >
             {showPw ? <EyeOff size={15} strokeWidth={1.8} /> : <Eye size={15} strokeWidth={1.8} />}
           </button>
@@ -228,13 +234,13 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
       <div className="py-4 text-center space-y-4">
         <div className="text-4xl">📬</div>
         <div>
-          <p className="text-[15px] font-bold text-white">Vérifie ta boîte mail</p>
-          <p className="text-[12px] text-[#555] mt-1.5 leading-relaxed">
-            Un lien de confirmation a été envoyé à <span className="text-[#aaa]">{email}</span>.
+          <p className="text-[15px] font-bold" style={{ color: "var(--text-primary)" }}>Vérifie ta boîte mail</p>
+          <p className="text-[12px] mt-1.5 leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            Un lien de confirmation a été envoyé à <span style={{ color: "var(--text-primary)" }}>{email}</span>.
             Clique dessus pour activer ton compte.
           </p>
         </div>
-        <p className="text-[11px] text-[#444]">
+        <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
           Reviens ici une fois confirmé et connecte-toi via &quot;Se connecter&quot;.
         </p>
       </div>
@@ -261,10 +267,10 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
           onChange={(v) => { setUsername(v); setError(""); }}
         />
         <div className="flex items-center justify-between px-1">
-          <p className="text-[10px] text-[#444]">3 à 16 caractères</p>
+          <p className="text-[10px]" style={{ color: "var(--text-faint)" }}>3 à 16 caractères</p>
           {username.length > 0 && (
-            <p className={cn("text-[10px]", usernameOk ? "text-emerald-500" : "text-[#555]")}>
-              {username.trim().length}/16
+            <p className="text-[10px]" style={{ color: usernameOk ? undefined : "var(--text-faint)" }}>
+              <span className={usernameOk ? "text-emerald-500" : ""}>{username.trim().length}/16</span>
             </p>
           )}
         </div>
@@ -291,7 +297,8 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
             <button
               type="button"
               onClick={() => setShowPw((v) => !v)}
-              className="text-[#555] hover:text-[#888] transition-colors"
+              className="transition-colors"
+            style={{ color: "var(--text-muted)" }}
             >
               {showPw ? <EyeOff size={15} strokeWidth={1.8} /> : <Eye size={15} strokeWidth={1.8} />}
             </button>
@@ -299,13 +306,13 @@ function SignUpForm({ onSuccess }: { onSuccess: () => void }) {
         />
         {/* Password strength hints */}
         <div className="flex items-center gap-3 px-1">
-          <span className={cn("text-[10px]", passwordOk ? "text-emerald-500" : "text-[#444]")}>
+          <span className={cn("text-[10px]", passwordOk ? "text-emerald-500" : "")} style={passwordOk ? undefined : { color: "var(--text-faint)" }}>
             {passwordOk ? "✓" : "·"} 6 caractères min.
           </span>
-          <span className={cn("text-[10px]", hasNumber ? "text-emerald-500" : "text-[#444]")}>
+          <span className={cn("text-[10px]", hasNumber ? "text-emerald-500" : "")} style={hasNumber ? undefined : { color: "var(--text-faint)" }}>
             {hasNumber ? "✓" : "·"} Un chiffre
           </span>
-          <span className={cn("text-[10px]", hasSpecial ? "text-emerald-500" : "text-[#444]")}>
+          <span className={cn("text-[10px]", hasSpecial ? "text-emerald-500" : "")} style={hasSpecial ? undefined : { color: "var(--text-faint)" }}>
             {hasSpecial ? "✓" : "·"} Caractère spécial
           </span>
         </div>
@@ -342,7 +349,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#0e0e0e] flex flex-col items-center justify-center px-5 py-10">
+    <div className="min-h-dvh flex flex-col items-center justify-center px-5 py-10" style={{ background: "var(--bg-base)" }}>
       {/* Radial glow */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
@@ -360,26 +367,25 @@ export default function LoginPage() {
             🎭
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">ReFramed</h1>
-            <p className="text-[13px] text-[#555] mt-0.5">Imite la pose. Claude juge.</p>
+            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>ReFramed</h1>
+            <p className="text-[13px] mt-0.5" style={{ color: "var(--text-muted)" }}>Imite la pose. Claude juge.</p>
           </div>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl bg-[#111] border border-[#1e1e1e] overflow-hidden">
+        <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--bg-surface-2)", borderColor: "var(--bg-border-subtle)" }}>
 
           {/* Tabs */}
-          <div className="grid grid-cols-2 border-b border-[#1e1e1e]">
+          <div className="grid grid-cols-2 border-b" style={{ borderColor: "var(--bg-border-subtle)" }}>
             {(["signin", "signup"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
                   "py-3 text-[13px] font-semibold transition-colors",
-                  tab === t
-                    ? "text-white border-b-2 border-[#f6b73c] -mb-px"
-                    : "text-[#555] hover:text-[#888]",
+                  tab === t ? "border-b-2 border-[#f6b73c] -mb-px" : "",
                 )}
+                style={{ color: tab === t ? "var(--text-primary)" : "var(--text-muted)" }}
               >
                 {t === "signin" ? "Se connecter" : "S'inscrire"}
               </button>
@@ -396,7 +402,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-[#444]">
+        <p className="text-center text-[11px]" style={{ color: "var(--text-faint)" }}>
           En continuant, tu acceptes les conditions d&apos;utilisation.
         </p>
       </div>

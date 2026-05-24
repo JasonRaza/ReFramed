@@ -12,7 +12,9 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Jason\\\\ReFramed\" -Recurse -Include \"*.tsx\", \"*.ts\", \"*.css\", \"*.json\", \"*.sql\" -Depth 10)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(/opt/homebrew/Cellar/node/26.0.0/bin/node --version)",
+      "Bash(PATH=/opt/homebrew/Cellar/node/26.0.0/bin:__TRACKED_VAR__ npm install lucide-react)"
     ]
   }
 }

@@ -141,6 +141,42 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   return { id: user.id, email: user.email ?? "" };
 }
 
+// ── Game stats ────────────────────────────────────────────────────────────────
+
+const STATS_APPLIED_KEY = "reframed_stats_applied_rooms";
+
+function statsAppliedRooms(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    return new Set(JSON.parse(localStorage.getItem(STATS_APPLIED_KEY) ?? "[]") as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * Records a game result in the database (total_games, total_wins, best_score).
+ * Idempotent per roomId — safe to call on page reload.
+ */
+export async function saveGameResultToDb(
+  roomId: string,
+  result: "win" | "loss" | "draw",
+  score: number,
+): Promise<void> {
+  if (typeof window === "undefined" || !supabase) return;
+
+  const rooms = statsAppliedRooms();
+  if (rooms.has(roomId)) return;
+
+  await supabase.rpc("record_game_result", {
+    p_won:   result === "win",
+    p_score: score,
+  });
+
+  rooms.add(roomId);
+  localStorage.setItem(STATS_APPLIED_KEY, JSON.stringify(Array.from(rooms).slice(-50)));
+}
+
 // ── Error messages ────────────────────────────────────────────────────────────
 
 function friendlyError(msg?: string): string {

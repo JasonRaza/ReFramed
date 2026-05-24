@@ -12,6 +12,7 @@ import Avatar, {
 } from "@/components/Avatar";
 import { getProfile, saveProfile } from "@/hooks/useGameRoom";
 import { getRankSnapshot, type RankSnapshot } from "@/lib/rank";
+import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/game";
 
 // ─── Rank config ──────────────────────────────────────────────────────────────
@@ -45,10 +46,11 @@ function EditPanel({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold text-white">Modifier le profil</h2>
+        <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>Modifier le profil</h2>
         <button
           onClick={onCancel}
-          className="text-[12px] text-[#555] hover:text-[#888] transition-colors"
+          className="text-[12px] transition-colors hover:text-[var(--text-primary)]"
+          style={{ color: "var(--text-muted)" }}
         >
           Annuler
         </button>
@@ -61,7 +63,7 @@ function EditPanel({
 
       {/* Animal */}
       <div>
-        <p className="mb-2 text-[11px] font-medium text-[#555] uppercase tracking-wider">Animal</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Animal</p>
         <div className="grid grid-cols-6 gap-2">
           {AVATARS.map((a) => (
             <button
@@ -69,9 +71,9 @@ function EditPanel({
               onClick={() => setEmoji(a)}
               className={[
                 "flex items-center justify-center rounded-xl aspect-square text-xl transition-all duration-100",
-                a === emoji ? "ring-2 ring-white/60 scale-105" : "bg-[#1a1a1a] hover:bg-[#222]",
+                a === emoji ? "ring-2 ring-white/60 scale-105" : "hover:bg-[var(--bg-hover)]",
               ].join(" ")}
-              style={a === emoji ? { background: getBg(colorKey) } : {}}
+              style={a === emoji ? { background: getBg(colorKey) } : { background: "var(--bg-surface)" }}
             >
               {a}
             </button>
@@ -81,7 +83,7 @@ function EditPanel({
 
       {/* Colour */}
       <div>
-        <p className="mb-2 text-[11px] font-medium text-[#555] uppercase tracking-wider">Couleur</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Couleur</p>
         <div className="flex gap-2">
           {AVATAR_COLORS.map((c) => (
             <button
@@ -90,7 +92,7 @@ function EditPanel({
               className={[
                 "flex-1 h-7 rounded-full transition-all duration-100",
                 c.key === colorKey
-                  ? "ring-2 ring-white ring-offset-2 ring-offset-[#0e0e0e]"
+                  ? "ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-base)]"
                   : "opacity-40 hover:opacity-70",
               ].join(" ")}
               style={{ background: c.bg }}
@@ -101,9 +103,10 @@ function EditPanel({
 
       {/* Username */}
       <div>
-        <p className="mb-2 text-[11px] font-medium text-[#555] uppercase tracking-wider">Pseudo</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Pseudo</p>
         <input
-          className="w-full rounded-lg bg-[#1a1a1a] border border-[#222] px-4 py-2.5 text-sm font-medium text-white placeholder:text-[#333] focus:outline-none focus:border-[#444] transition-colors"
+          className="w-full rounded-lg border px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[var(--text-faint)] transition-colors placeholder:text-[var(--text-faint)]"
+          style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
           maxLength={16}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -138,7 +141,7 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-lg bg-[#1a1a1a] border border-[#222] px-3.5 py-3">
+    <div className="flex flex-col gap-2 rounded-lg border px-3.5 py-3" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
       <div
         className="flex h-7 w-7 items-center justify-center rounded-lg"
         style={{ background: `${accent}18` }}
@@ -165,10 +168,24 @@ export default function ProfilePage() {
   useEffect(() => {
     setProfile(getProfile());
     setRank(getRankSnapshot());
-    const games  = parseInt(localStorage.getItem("rf_total_games")  ?? "0", 10);
-    const wins   = parseInt(localStorage.getItem("rf_total_wins")   ?? "0", 10);
-    const best   = parseInt(localStorage.getItem("rf_best_score")   ?? "0", 10);
-    setStats({ games, wins, losses: Math.max(0, games - wins), best });
+
+    async function loadStats() {
+      if (!supabase) return;
+      const user = await getAuthUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("user_profiles")
+        .select("total_games, total_wins, best_score")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        const games = (data.total_games as number) ?? 0;
+        const wins  = (data.total_wins  as number) ?? 0;
+        setStats({ games, wins, losses: Math.max(0, games - wins), best: (data.best_score as number) ?? 0 });
+      }
+    }
+
+    void loadStats();
   }, []);
 
   async function handleSave(p: Profile) {
@@ -202,7 +219,7 @@ export default function ProfilePage() {
     <div className="flex flex-col gap-5">
 
       {/* ── Profile card ───────────────────────────────── */}
-      <div className="relative rounded-xl bg-[#1a1a1a] border border-[#222] px-5 py-5 flex items-center gap-4 overflow-hidden">
+      <div className="relative rounded-xl border px-5 py-5 flex items-center gap-4 overflow-hidden" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
         {/* Subtle tinted background matching avatar colour */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.06]"

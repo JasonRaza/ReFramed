@@ -30,12 +30,24 @@ export default function ModeRow({ id, label, sub, onClick }: Props) {
       onClick={onClick}
       className={cn(
         "group relative flex w-full items-center gap-3.5 overflow-hidden rounded-lg",
-        "bg-[#1a1a1a] border border-[#222] px-4 text-left",
+        "border px-4 text-left",
         "transition-all duration-150",
-        "hover:bg-[#1f1f1f] hover:border-[#2a2a2a] hover:shadow-[0_4px_16px_rgba(0,0,0,0.5)]",
+        "hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)]",
         "active:scale-[0.99]",
         popular ? "py-3.5" : "py-3",
       )}
+      style={{
+        background: "var(--bg-surface)",
+        borderColor: "var(--bg-border)",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-hover)";
+        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--bg-border-subtle)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-surface)";
+        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--bg-border)";
+      }}
     >
       {/* Left accent bar */}
       <span
