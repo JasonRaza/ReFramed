@@ -1,16 +1,14 @@
 "use client";
 
-import { use, useCallback, useEffect, useRef, useState } from "react";
-import { useGameRoom } from "@/hooks/useGameRoom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useGameRoom, usePose } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
-import poses from "@/lib/poses.json";
-import type { Pose } from "@/lib/game";
 
 const DURATION = 15;
 const URGENT_AT = 8;
 
-export default function CapturePage({ params }: { params: Promise<{ roomId: string }> }) {
-  const { roomId } = use(params);
+export default function CapturePage({ params }: { params: { roomId: string } }) {
+  const { roomId } = params;
   const { room, loading, error, isHost, playerId } = useGameRoom(roomId);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -21,15 +19,12 @@ export default function CapturePage({ params }: { params: Promise<{ roomId: stri
   const [photo, setPhoto] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState("");
 
-  const pose = room?.current_pose_id
-    ? (poses as Pose[]).find((p) => p.id === room.current_pose_id) ?? null
-    : null;
+  const pose = usePose(room?.current_pose_id);
 
   const isUrgent = seconds <= URGENT_AT;
 
   // Server-synced countdown
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ts = (room as any)?.preview_started_at as string | null | undefined;
     if (!ts) return;
     const update = () => {
@@ -39,7 +34,6 @@ export default function CapturePage({ params }: { params: Promise<{ roomId: stri
     update();
     const id = setInterval(update, 500);
     return () => clearInterval(id);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }, [(room as any)?.preview_started_at]);
 
   useEffect(() => {

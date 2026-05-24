@@ -146,7 +146,7 @@ const Camera = forwardRef<CameraHandle, CameraProps>(function Camera(
           alt=""
           aria-hidden
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          style={{ opacity: 0.15, mixBlendMode: "screen" }}
+          style={{ opacity: 0.4 }}
         />
       )}
 

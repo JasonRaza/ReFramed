@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useGameRoom } from "@/hooks/useGameRoom";
+import { useGameRoom, usePose } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
-import poses from "@/lib/poses.json";
-import type { Pose } from "@/lib/game";
 import PoseCard from "@/components/PoseCard";
 import CountdownTimer from "@/components/CountdownTimer";
+import CountdownAccelerator from "@/components/CountdownAccelerator";
 
 const DURATION = 5;
 
@@ -14,10 +13,7 @@ export default function PreviewPage({ params }: { params: { roomId: string } }) 
   const { roomId } = params;
   const { room, loading, error, isHost } = useGameRoom(roomId);
   const [seconds, setSeconds] = useState(DURATION);
-
-  const pose = room?.current_pose_id
-    ? (poses as Pose[]).find((p) => p.id === room.current_pose_id) ?? null
-    : null;
+  const pose = usePose(room?.current_pose_id);
 
   // Server-synced countdown derived from preview_started_at
   useEffect(() => {
@@ -44,18 +40,32 @@ export default function PreviewPage({ params }: { params: { roomId: string } }) 
 
   return (
     <main className="relative mx-auto flex min-h-dvh max-w-md flex-col overflow-hidden bg-black">
-      {/* Full-screen pose image with gradient overlay */}
+      {/* Full-screen pose image */}
       <PoseCard pose={pose} size="full" />
 
-      {/* Countdown bubble — top right, purple circle */}
-      <div className="absolute right-4 top-4 z-10">
-        <CountdownTimer seconds={seconds} />
+      {/* "Mémorise" badge */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 backdrop-blur-md shadow-glass">
+          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-slow" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Mémorise !</p>
+        </div>
       </div>
 
-      {/* Depleting progress bar at very bottom */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 h-1 bg-white/10">
+      {/* Big countdown */}
+      <div className="absolute right-4 top-5 z-10">
+        <CountdownTimer seconds={seconds} urgent={seconds <= 2} />
+      </div>
+
+      {isHost && seconds > 0 && (
+        <div className="absolute inset-x-4 bottom-5 z-20">
+          <CountdownAccelerator roomId={roomId} totalSeconds={DURATION} currentSeconds={seconds} />
+        </div>
+      )}
+
+      {/* Progress bar */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 h-1.5 bg-white/10">
         <div
-          className="h-full bg-highlight transition-all duration-500"
+          className="h-full bg-highlight transition-all duration-500 ease-linear"
           style={{ width: `${progress * 100}%` }}
         />
       </div>

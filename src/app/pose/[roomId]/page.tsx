@@ -3,12 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Camera, { type CameraHandle } from "@/components/Camera";
 import CountdownTimer from "@/components/CountdownTimer";
-import { useGameRoom } from "@/hooks/useGameRoom";
+import { useGameRoom, usePose } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
 import { uploadPlayerImage, savePlayerImageUrl } from "@/lib/storage";
 import { playCameraShutter } from "@/lib/sounds";
-import poses from "@/lib/poses.json";
-import type { Pose } from "@/lib/game";
 
 const DURATION = 15;
 
@@ -22,13 +20,13 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
   const [uploaded, setUploaded] = useState(false);
   const [uploadError, setUploadError] = useState("");
 
-  const pose = room?.current_pose_id
-    ? (poses as Pose[]).find((p) => p.id === room.current_pose_id) ?? null
-    : null;
+  const pose = usePose(room?.current_pose_id);
+  const isActivePlayer = Boolean(
+    playerId && room && (room.player1_id === playerId || room.player2_id === playerId),
+  );
 
   // Server-synced countdown from preview_started_at
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ts = (room as any)?.preview_started_at as string | null | undefined;
     if (!ts) return;
     const tick = () => {
@@ -38,7 +36,6 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
     tick();
     const id = setInterval(tick, 500);
     return () => clearInterval(id);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }, [(room as any)?.preview_started_at]);
 
   // Auto-capture when timer expires
@@ -88,6 +85,19 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
 
   if (loading) return <Screen><Spinner /></Screen>;
   if (error) return <Screen><p className="text-red-400 text-sm">{error}</p></Screen>;
+  if (room?.mode === "royale" && !isActivePlayer) {
+    return (
+      <Screen>
+        <div className="max-w-sm space-y-3 px-6 text-center">
+          <p className="text-5xl">👑</p>
+          <h2 className="text-2xl font-black">Tu observes ce round</h2>
+          <p className="text-sm text-white/50">
+            MVP Battle Royale: les deux premiers joueurs font le duel, les autres suivent le résultat.
+          </p>
+        </div>
+      </Screen>
+    );
+  }
 
   return (
     <main className="relative mx-auto flex min-h-dvh max-w-md flex-col overflow-hidden bg-black">
@@ -104,14 +114,12 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
       <div className="relative flex flex-1 flex-col">
         {/* Top bar: countdown left, pose name right */}
         <div className="flex items-start justify-between p-4">
-          <div className="rounded-2xl bg-black/60 px-4 py-2 backdrop-blur-sm">
-            <CountdownTimer seconds={seconds} urgent={seconds <= 8} />
-          </div>
+          <CountdownTimer seconds={seconds} urgent={seconds <= 5} />
 
           {pose && (
-            <div className="max-w-[140px] rounded-xl bg-black/60 px-3 py-2 text-right backdrop-blur-sm">
-              <p className="text-xs font-medium leading-tight text-white/80">{pose.title}</p>
-              <p className="mt-0.5 text-[10px] text-white/40">{pose.artist}</p>
+            <div className="max-w-[150px] rounded-2xl border border-surface-border bg-surface px-4 py-2.5 text-right shadow-glass backdrop-blur-md">
+              <p className="text-xs font-bold leading-tight text-white truncate">{pose.title}</p>
+              <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-white/40 truncate">{pose.artist}</p>
             </div>
           )}
         </div>
@@ -143,14 +151,15 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
         {!uploaded && (
           <div className="flex gap-3 p-4 pb-8">
             <button
-              className="min-h-[44px] flex-1 rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-40"
+              className="group relative overflow-hidden min-h-[54px] flex-1 rounded-2xl bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-40 transition-all"
               onClick={() => cameraRef.current?.capture()}
               disabled={uploading}
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               {uploading ? "Envoi…" : "Capturer"}
             </button>
             <button
-              className="min-h-[44px] rounded-[14px] border border-white/20 bg-white/10 px-5 py-4 text-base font-medium active:scale-[0.98]"
+              className="min-h-[54px] rounded-2xl border border-surface-border bg-surface px-6 py-4 text-base font-bold shadow-glass active:scale-[0.98] hover:bg-surface-hover transition-all"
               onClick={handleRetake}
             >
               Reprendre

@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { scoreRound } from "@/lib/scoring";
-import poses from "@/lib/poses.json";
 import type { Pose, Room } from "@/lib/game";
 
 async function fetchBase64(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url, { next: { revalidate: 0 } });
+    const res = await fetch(url, {
+      next: { revalidate: 0 },
+      headers: { "User-Agent": "ReFramed-Game/1.0" },
+    });
     if (!res.ok) return null;
     const buffer = await res.arrayBuffer();
     return Buffer.from(buffer).toString("base64");
@@ -52,7 +54,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Images manquantes." }, { status: 400 });
   }
 
-  const pose = (poses as Pose[]).find((p) => p.id === room.current_pose_id);
+  const { data: poseData } = await supabase
+    .from("poses")
+    .select("*")
+    .eq("id", room.current_pose_id)
+    .single();
+  const pose = poseData ? ({ ...poseData, imageUrl: poseData.image_url } as Pose) : null;
   if (!pose) {
     return NextResponse.json({ error: "Pose introuvable." }, { status: 400 });
   }
@@ -70,13 +77,43 @@ export async function POST(request: Request) {
     p2B64 ?? "",
   );
 
+  const isRanked = room.mode === "ranked";
+  const rankedP1Rounds = room.ranked_player1_rounds ?? 0;
+  const rankedP2Rounds = room.ranked_player2_rounds ?? 0;
+  const nextRankedP1Rounds = isRanked && result.winner === "player1"
+    ? rankedP1Rounds + 1
+    : rankedP1Rounds;
+  const nextRankedP2Rounds = isRanked && result.winner === "player2"
+    ? rankedP2Rounds + 1
+    : rankedP2Rounds;
+  const totalRounds = room.total_rounds ?? (isRanked ? 5 : 1);
+  const rankedMatchDone = isRanked && (
+    nextRankedP1Rounds >= 3 ||
+    nextRankedP2Rounds >= 3 ||
+    (room.current_round ?? 1) >= totalRounds
+  );
+  const finalWinner = isRanked
+    ? nextRankedP1Rounds === nextRankedP2Rounds
+      ? "tie"
+      : nextRankedP1Rounds > nextRankedP2Rounds
+        ? "player1"
+        : "player2"
+    : result.winner;
+
   // Save results + transition to RESULTS atomically
   await supabase.from("rooms").update({
     player1_score: result.player1Score,
     player2_score: result.player2Score,
     player1_roast: result.player1Roast,
     player2_roast: result.player2Roast,
-    winner: result.winner,
+    winner: isRanked && rankedMatchDone ? finalWinner : result.winner,
+    ...(isRanked
+      ? {
+          ranked_player1_rounds: nextRankedP1Rounds,
+          ranked_player2_rounds: nextRankedP2Rounds,
+          total_rounds: 5,
+        }
+      : {}),
     scored: true,
     state: "RESULTS",
     preview_started_at: new Date().toISOString(),

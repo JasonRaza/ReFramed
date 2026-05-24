@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useGameRoom } from "@/hooks/useGameRoom";
+import { useGameRoom, usePose } from "@/hooks/useGameRoom";
 import { playFanfare } from "@/lib/sounds";
-import poses from "@/lib/poses.json";
+import { startNextRankedRound } from "@/lib/supabase";
+import { applyRankDeltaOnce, getRankSnapshot, rankDeltaForResult, type RankSnapshot } from "@/lib/rank";
+import Avatar, { DEFAULT_AVATAR } from "@/components/Avatar";
 import type { Pose } from "@/lib/game";
 
 // ── inline confetti ───────────────────────────────────────────────────────────
@@ -76,15 +78,37 @@ function useCountUp(target: number, delay = 0): number {
 
 export default function ResultsPage({ params }: { params: { roomId: string } }) {
   const { roomId } = params;
-  const { room, loading, error, isHost } = useGameRoom(roomId);
+  const { room, loading, error, isHost, playerId } = useGameRoom(roomId);
   const router = useRouter();
+  const [rank, setRank] = useState<RankSnapshot | null>(null);
+  const [advancing, setAdvancing] = useState(false);
 
   const p1Score = useCountUp(room?.player1_score ?? 0, 300);
   const p2Score = useCountUp(room?.player2_score ?? 0, 600);
 
-  const pose = room?.current_pose_id
-    ? (poses as Pose[]).find((p) => p.id === room.current_pose_id) ?? null
-    : null;
+  const pose = usePose(room?.current_pose_id);
+  const r = room as any;
+  const isDraw = r?.winner === "tie" || r?.winner === "draw";
+  const p1Wins = !isDraw && r?.winner === "player1";
+  const p2Wins = !isDraw && r?.winner === "player2";
+  const isRanked = r?.mode === "ranked";
+  const isRoyale = r?.mode === "royale";
+  const rankedP1Rounds = r?.ranked_player1_rounds ?? 0;
+  const rankedP2Rounds = r?.ranked_player2_rounds ?? 0;
+  const currentRound = r?.current_round ?? 1;
+  const totalRounds = r?.total_rounds ?? (isRanked ? 5 : 1);
+  const rankedMatchDone = isRanked && (
+    rankedP1Rounds >= 3 ||
+    rankedP2Rounds >= 3 ||
+    currentRound >= totalRounds
+  );
+  const localSlot = playerId && room?.player1_id === playerId ? "player1" : "player2";
+  const localResult = isDraw
+    ? "draw"
+    : (localSlot === "player1" && p1Wins) || (localSlot === "player2" && p2Wins)
+      ? "win"
+      : "loss";
+  const rankDelta = rankDeltaForResult(localResult);
 
   // Confetti + fanfare on mount
   useEffect(() => {
@@ -93,15 +117,18 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
     return () => { clearTimeout(t); clearTimeout(s); };
   }, []);
 
+  useEffect(() => {
+    if (!isRanked || !room) return;
+    if (!rankedMatchDone) {
+      setRank(getRankSnapshot());
+      return;
+    }
+    setRank(applyRankDeltaOnce(roomId, rankDelta));
+  }, [isRanked, rankedMatchDone, rankDelta, room, roomId]);
+
   if (loading) return <Shell><Spinner /></Shell>;
   if (error) return <Shell><p className="text-red-400 text-sm">{error}</p></Shell>;
   if (!room) return null;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const r = room as any;
-  const isDraw = r.winner === "tie" || r.winner === "draw";
-  const p1Wins = !isDraw && r.winner === "player1";
-  const p2Wins = !isDraw && r.winner === "player2";
 
   const winnerLabel = isDraw
     ? "Égalité artistique"
@@ -109,34 +136,53 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
       ? (isHost ? "Tu gagnes !" : "Joueur 1 gagne !")
       : (isHost ? "Tu perds…" : "Joueur 2 gagne !");
 
+  async function handleNextRankedRound() {
+    if (!room) return;
+    setAdvancing(true);
+    await startNextRankedRound(room);
+  }
+
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-8 pt-5 gap-4">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-8 pt-5 gap-4 animate-fade-up">
 
       {/* Winner badge */}
-      <div className="text-center space-y-1">
-        {!isDraw && <div className="text-3xl">👑</div>}
-        <p className="text-xs uppercase tracking-[0.3em] text-purple-300">Résultats</p>
+      <div className="text-center space-y-1 pt-2">
+        {!isDraw && <div className="text-4xl">{p1Wins === (isHost) ? "🏆" : "😤"}</div>}
+        {isDraw && <div className="text-4xl">🤝</div>}
+        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-purple-400">Résultats</p>
+        {isRanked && (
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-yellow-200">
+            Round {currentRound} / {totalRounds} · {rankedP1Rounds}-{rankedP2Rounds}
+          </p>
+        )}
         <h2 className={`text-3xl font-black ${p1Wins || p2Wins ? "text-yellow-300" : ""}`}>
-          {winnerLabel}
+          {isRanked && !rankedMatchDone ? "Round terminé" : winnerLabel}
         </h2>
+        {isRanked && (
+          <div className="mx-auto inline-flex flex-col rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black text-yellow-200">
+            <span>{rankedMatchDone ? "Match classé terminé" : "Best of 5 en cours"}</span>
+            {rankedMatchDone && rank && (
+              <span className="text-xs text-yellow-100/80">
+                Rang: {rank.label} · {rank.points} pts ({rankDelta >= 0 ? "+" : ""}{rankDelta})
+              </span>
+            )}
+          </div>
+        )}
+        {isRoyale && (
+          <p className="mx-auto inline-flex rounded-full border border-purple-400/30 bg-purple-400/10 px-4 py-2 text-xs font-bold text-purple-100">
+            Battle Royale MVP: top duel du lobby
+          </p>
+        )}
       </div>
 
       {/* 3 images: reference | p1 | p2 */}
       <div className="grid grid-cols-3 gap-2">
         {/* Reference */}
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]">
-          <div className="relative aspect-[3/4] w-full overflow-hidden bg-black">
-            {pose && (
-              <Image src={pose.imageUrl} alt={pose.title} fill className="object-cover" unoptimized />
-            )}
-          </div>
-          <div className="p-2 text-center">
-            <p className="text-[10px] leading-tight text-white/40">Référence</p>
-          </div>
-        </div>
+        <ReferenceCard pose={pose} />
 
         <PlayerCard
-          label={isHost ? "Toi" : "Joueur 1"}
+          label={r.player1_username ?? (isHost ? "Toi" : "Joueur 1")}
+          avatar={r.player1_avatar ?? DEFAULT_AVATAR}
           imageUrl={r.player1_image_url ?? null}
           score={p1Score}
           roast={r.player1_roast ?? null}
@@ -145,7 +191,8 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
         />
 
         <PlayerCard
-          label={!isHost ? "Toi" : "Joueur 2"}
+          label={r.player2_username ?? (!isHost ? "Toi" : "Joueur 2")}
+          avatar={r.player2_avatar ?? DEFAULT_AVATAR}
           imageUrl={r.player2_image_url ?? null}
           score={p2Score}
           roast={r.player2_roast ?? null}
@@ -156,13 +203,54 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
 
       <div className="flex-1" />
 
-      <button
-        className="min-h-[44px] w-full rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98]"
-        onClick={() => router.push("/lobby")}
-      >
-        Rejouer
-      </button>
+      {isRanked && !rankedMatchDone ? (
+        isHost ? (
+          <button
+            className="min-h-[44px] w-full rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-50"
+            onClick={handleNextRankedRound}
+            disabled={advancing}
+          >
+            {advancing ? "Chargement…" : "Round suivant"}
+          </button>
+        ) : (
+          <p className="text-center text-sm text-white/40">En attente de l&apos;hôte pour le round suivant…</p>
+        )
+      ) : (
+        <button
+          className="min-h-[44px] w-full rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98]"
+          onClick={() => router.push(isRanked ? "/lobby?mode=ranked" : isRoyale ? "/lobby?mode=royale" : "/lobby")}
+        >
+          Rejouer
+        </button>
+      )}
     </main>
+  );
+}
+
+// ── ReferenceCard ─────────────────────────────────────────────────────────────
+
+function ReferenceCard({ pose }: { pose: Pose | null }) {
+  const [imgError, setImgError] = useState(false);
+  return (
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-surface-border bg-surface shadow-glass">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-ink">
+        {pose && !imgError ? (
+          <Image
+            src={pose.imageUrl}
+            alt={pose.title}
+            fill
+            className="object-cover"
+            unoptimized
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-ink" />
+        )}
+      </div>
+      <div className="p-2 text-center bg-white/[0.02]">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Référence</p>
+      </div>
+    </div>
   );
 }
 
@@ -170,6 +258,7 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
 
 function PlayerCard({
   label,
+  avatar,
   imageUrl,
   score,
   roast,
@@ -177,6 +266,7 @@ function PlayerCard({
   delay,
 }: {
   label: string;
+  avatar: string;
   imageUrl: string | null;
   score: number;
   roast: string | null;
@@ -184,30 +274,45 @@ function PlayerCard({
   delay: number;
 }) {
   const displayed = useCountUp(score, delay);
+  const [imgError, setImgError] = useState(false);
   return (
     <div
       className={[
-        "flex flex-col overflow-hidden rounded-2xl border transition-all",
+        "flex flex-col overflow-hidden rounded-2xl border transition-all duration-500",
         isWinner
-          ? "border-yellow-400/60 bg-yellow-400/10 scale-[1.02]"
-          : "border-white/10 bg-white/[0.04]",
+          ? "border-amber-400/50 bg-amber-400/10 scale-[1.02] shadow-[0_0_30px_rgba(251,191,36,0.15)] z-10"
+          : "border-surface-border bg-surface shadow-glass",
       ].join(" ")}
     >
-      {isWinner && <div className="py-1 text-center text-sm">👑</div>}
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-black">
-        {imageUrl ? (
-          <Image src={imageUrl} alt={label} fill className="object-cover" unoptimized />
+      {isWinner && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-300 z-10" />}
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-ink">
+        {imageUrl && !imgError ? (
+          <Image
+            src={imageUrl}
+            alt={label}
+            fill
+            className="object-cover"
+            unoptimized
+            onError={() => setImgError(true)}
+          />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-white/20">—</div>
+          <div className="flex h-full items-center justify-center">
+            <Avatar avatar={avatar} size="lg" />
+          </div>
+        )}
+        {isWinner && (
+          <div className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs shadow-lg">
+            👑
+          </div>
         )}
       </div>
-      <div className="space-y-1 p-3 text-center">
-        <p className="text-xs text-white/40">{label}</p>
-        <p className={`text-3xl font-black tabular-nums ${isWinner ? "text-yellow-400" : ""}`}>
+      <div className="space-y-1.5 p-2.5 text-center bg-white/[0.02]">
+        <p className="text-[11px] font-bold uppercase tracking-wider truncate text-white/60 leading-tight">{label}</p>
+        <p className={`text-3xl font-black tabular-nums tracking-tight leading-none ${isWinner ? "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" : "text-white"}`}>
           {displayed}
         </p>
         {roast && (
-          <p className="text-[11px] italic leading-tight text-white/40">{roast}</p>
+          <p className="text-[9px] font-medium italic leading-tight text-white/40 px-1">{roast}</p>
         )}
       </div>
     </div>

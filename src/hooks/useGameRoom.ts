@@ -3,15 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { supabase, subscribeToRoom } from "@/lib/supabase";
+import { fetchPoseById, supabase, subscribeToRoom } from "@/lib/supabase";
 import { STATE_ROUTE } from "@/lib/game";
-import type { GameState, Room } from "@/lib/game";
+import type { GameState, Pose, Profile, Room } from "@/lib/game";
 
 function uuid(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
-  // Fallback for HTTP / older mobile browsers
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
@@ -27,6 +26,32 @@ export function getPlayerId(): string {
     localStorage.setItem("reframed_player_id", id);
   }
   return id;
+}
+
+export function getProfile(): Profile | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("reframed_profile");
+    if (!raw) return null;
+    return JSON.parse(raw) as Profile;
+  } catch {
+    return null;
+  }
+}
+
+export function saveProfile(profile: Profile): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("reframed_profile", JSON.stringify(profile));
+}
+
+/** Fetches a pose from the DB when a poseId is available. */
+export function usePose(poseId: string | null | undefined): Pose | null {
+  const [pose, setPose] = useState<Pose | null>(null);
+  useEffect(() => {
+    if (!poseId) { setPose(null); return; }
+    fetchPoseById(poseId).then(setPose);
+  }, [poseId]);
+  return pose;
 }
 
 export function useGameRoom(roomId: string) {

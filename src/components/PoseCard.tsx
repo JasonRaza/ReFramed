@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import type { Pose } from "@/lib/game";
 
@@ -10,41 +11,56 @@ interface Props {
 }
 
 export default function PoseCard({ pose, size = "full" }: Props) {
+  const [imgError, setImgError] = useState(false);
+
   if (size === "thumb") {
     return (
-      <div className="relative overflow-hidden rounded-2xl aspect-[3/4] w-full">
-        <Image
-          src={pose.imageUrl}
-          alt={pose.title}
-          fill
-          className="object-cover"
-          unoptimized
-        />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-          <p className="truncate text-xs font-medium text-white">{pose.title}</p>
-          <p className="truncate text-[10px] text-white/50">{pose.artist}</p>
+      <div className="group relative overflow-hidden rounded-2xl aspect-[3/4] w-full border border-surface-border shadow-glass">
+        {!imgError ? (
+          <Image
+            src={pose.imageUrl}
+            alt={pose.title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            unoptimized
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-ink" />
+        )}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink via-ink/80 to-transparent p-4">
+          <p className="truncate text-sm font-bold text-white">{pose.title}</p>
+          <p className="truncate text-[10px] font-medium uppercase tracking-wider text-white/50">{pose.artist}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative flex-1 w-full">
-      <Image
-        src={pose.imageUrl}
-        alt={pose.title}
-        fill
-        className="object-cover"
-        unoptimized
-        priority
-      />
-      {/* Bottom gradient overlay with pose info */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-6 pb-8 pt-24">
-        <p className="mb-1 text-xs uppercase tracking-[0.25em] text-purple-300">
-          Mémorise la pose
-        </p>
-        <h2 className="text-2xl font-black leading-tight">{pose.title}</h2>
-        <p className="mt-1 text-sm text-white/60">{pose.artist}</p>
+    <div className="relative flex-1 w-full overflow-hidden">
+      {!imgError ? (
+        <Image
+          src={pose.imageUrl}
+          alt={pose.title}
+          fill
+          className="object-cover"
+          unoptimized
+          priority
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-ink to-ink" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 px-6 pb-10 pt-24">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 mb-3 backdrop-blur-md">
+          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-slow" />
+          <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            Mémorise la pose
+          </p>
+        </div>
+        <h2 className="text-3xl font-black leading-tight tracking-tight bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">{pose.title}</h2>
+        <p className="mt-1 text-sm font-medium text-white/60">{pose.artist}</p>
       </div>
     </div>
   );

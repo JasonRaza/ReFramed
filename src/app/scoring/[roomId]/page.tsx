@@ -41,37 +41,30 @@ export default function ScoringPage({ params }: { params: { roomId: string } }) 
 
   return (
     <Shell>
-      {/* Gavel icon in a purple-tinted circle */}
-      <div className="flex h-24 w-24 items-center justify-center rounded-full border border-primary/30 bg-primary/20">
-        <svg
-          viewBox="0 0 24 24"
-          className="h-12 w-12 text-highlight"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M14.5 2.5 L21.5 9.5 L9.5 21.5 L2.5 14.5 Z" />
-          <path d="M9 9 L3 21" />
-          <path d="M15 3 L21 9" />
-        </svg>
+      {/* Pulsing judge icon */}
+      <div className="relative flex h-28 w-28 items-center justify-center">
+        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-20" />
+        <div className="absolute inset-2 rounded-full bg-primary/15 animate-pulse-slow" />
+        <div className="relative flex h-full w-full items-center justify-center rounded-full border border-primary/40 bg-primary/25 text-5xl">
+          ⚖️
+        </div>
       </div>
 
       <div className="space-y-2 text-center">
-        <h2 className="text-3xl font-black">Les juges délibèrent…</h2>
-        <p className="text-sm text-white/50">L&apos;IA analyse vos silhouettes</p>
+        <h2 className="text-3xl font-black tracking-tight">Délibération…</h2>
+        <p className="text-sm text-white/40">Claude analyse vos silhouettes</p>
       </div>
 
-      {/* 4 animated progress dots */}
-      <div className="flex gap-2">
+      {/* Animated dots */}
+      <div className="flex gap-3">
         {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
-            className="h-2.5 w-2.5 rounded-full transition-all duration-300"
+            className="h-3 w-3 rounded-full transition-all duration-300"
             style={{
-              background: dotStep > i ? "#a855f7" : "rgba(255,255,255,0.15)",
-              transform: dotStep === i ? "scale(1.4)" : "scale(1)",
+              background: dotStep > i ? "#a855f7" : "rgba(255,255,255,0.12)",
+              transform: dotStep === i ? "scale(1.5)" : "scale(1)",
+              boxShadow: dotStep > i ? "0 0 8px rgba(168,85,247,0.6)" : "none",
             }}
           />
         ))}
