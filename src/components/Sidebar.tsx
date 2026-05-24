@@ -43,17 +43,13 @@ function NavIcon({
         title={label}
         className={cn(
           "flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-150",
-          active
-            ? "bg-[#f6b73c]/10"
-            : "hover:bg-[#1e1e1e] text-[#555] hover:text-[#888]",
+          active ? "bg-[#f6b73c]/10" : "hover:bg-[var(--bg-border-subtle)]",
         )}
       >
         <Icon
           size={19}
-          className={cn(
-            "transition-colors",
-            active ? "text-[#f6b73c]" : "text-[#555]",
-          )}
+          className="transition-colors"
+          style={{ color: active ? "#f6b73c" : "var(--text-muted)" }}
           strokeWidth={active ? 2.2 : 1.8}
         />
       </button>
@@ -71,7 +67,8 @@ export default function Sidebar() {
   return (
     <>
       {/* ── Desktop sidebar ─────────────────────────────── */}
-      <aside className="hidden md:flex fixed left-0 top-0 h-full w-[72px] flex-col items-center border-r border-[#1e1e1e] bg-[#0e0e0e] py-5 z-40">
+      <aside className="hidden md:flex fixed left-0 top-0 h-full w-[72px] flex-col items-center border-r py-5 z-40"
+             style={{ background: "var(--bg-base)", borderColor: "var(--bg-border-subtle)" }}>
         {/* Logo */}
         <button
           onClick={() => router.push("/")}
@@ -111,7 +108,8 @@ export default function Sidebar() {
       </aside>
 
       {/* ── Mobile bottom tab bar ───────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-center justify-around border-t border-[#1e1e1e] bg-[#0e0e0e] px-4 py-2 pb-safe">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-center justify-around border-t px-4 py-2 pb-safe"
+           style={{ background: "var(--bg-base)", borderColor: "var(--bg-border-subtle)" }}>
         {[...NAV_TOP, ...NAV_BOTTOM].map((item) => {
           const active = isActive(item.href);
           return (
@@ -123,7 +121,8 @@ export default function Sidebar() {
             >
               <item.icon
                 size={22}
-                className={cn("transition-colors", active ? "text-[#f6b73c]" : "text-[#555]")}
+                className="transition-colors"
+                style={{ color: active ? "#f6b73c" : "var(--text-muted)" }}
                 strokeWidth={active ? 2.2 : 1.8}
               />
               {active && (

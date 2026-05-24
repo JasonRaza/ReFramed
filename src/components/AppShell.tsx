@@ -36,9 +36,9 @@ function OfflineBanner() {
 
 function ShellLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh bg-[#0e0e0e]">
+    <div data-themed className="flex min-h-dvh" style={{ background: "var(--bg-base)" }}>
       <Sidebar />
-      {/* Subtle radial glow — barely visible, breaks the flat black */}
+      {/* Subtle radial glow */}
       <div
         className="pointer-events-none fixed inset-0 md:left-[72px] z-0"
         style={{
@@ -79,7 +79,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   // Don't flash content while checking auth (except on login page)
   if (!authChecked && pathname !== "/login") {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-[#0e0e0e]">
+      <div className="flex min-h-dvh items-center justify-center" style={{ background: "var(--bg-base)" }}>
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#222] border-t-[#f6b73c]" />
       </div>
     );

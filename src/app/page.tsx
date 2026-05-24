@@ -144,14 +144,18 @@ function ModeSelect({
       {/* ── Header ─────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white leading-tight">ReFramed</h1>
-          <p className="text-[12px] text-[#555] mt-0.5">Choisis un mode</p>
+          <h1 className="text-xl font-bold leading-tight" style={{ color: "var(--text-primary)" }}>ReFramed</h1>
+          <p className="text-[12px] mt-0.5" style={{ color: "var(--text-muted)" }}>Choisis un mode</p>
         </div>
 
         {/* Avatar + name + rank */}
         <button
           onClick={onEditProfile}
-          className="flex items-center gap-2.5 rounded-xl bg-[#1a1a1a] border border-[#222] pl-2 pr-3 py-2 transition-colors hover:bg-[#1f1f1f] active:bg-[#252525]"
+          className="flex items-center gap-2.5 rounded-xl border pl-2 pr-3 py-2 transition-colors"
+          style={{
+            background: "var(--bg-surface)",
+            borderColor: "var(--bg-border)",
+          }}
         >
           {/* Coloured square avatar */}
           <span
@@ -161,7 +165,7 @@ function ModeSelect({
             {emoji}
           </span>
           <div className="text-left">
-            <p className="text-[12px] font-semibold text-white leading-tight">{profile.username}</p>
+            <p className="text-[12px] font-semibold leading-tight" style={{ color: "var(--text-primary)" }}>{profile.username}</p>
             <p className="text-[10px] font-medium leading-tight" style={{ color: rankColor }}>
               {rank.label}
             </p>
@@ -191,6 +195,7 @@ function ModeSelect({
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editing, setEditing] = useState(false);
   const [ready,   setReady]   = useState(false);
@@ -208,9 +213,10 @@ export default function HomePage() {
     setEditing(false);
   }
 
+  // Première configuration (pas encore de profil)
   if (!profile || editing) {
     return <ProfileSetup onDone={handleDone} />;
   }
 
-  return <ModeSelect profile={profile} onEditProfile={() => setEditing(true)} />;
+  return <ModeSelect profile={profile} onEditProfile={() => router.push("/profile")} />;
 }

@@ -36,6 +36,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={inter.variable}>
+      {/* Inline script: apply theme + locale BEFORE first paint to prevent flash */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var t=localStorage.getItem('reframed_theme')||'dark';
+            var l=localStorage.getItem('reframed_locale')||'fr';
+            document.documentElement.setAttribute('data-theme',t);
+            document.documentElement.lang=l;
+          })();
+        `}} />
+      </head>
       <body>
         <AppShell>{children}</AppShell>
       </body>

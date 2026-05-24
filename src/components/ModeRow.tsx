@@ -54,20 +54,21 @@ export default function ModeRow({ id, label, sub, onClick }: Props) {
       {/* Text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-[13px] font-medium text-[#ddd] leading-tight">{label}</p>
+          <p className="text-[13px] font-medium leading-tight" style={{ color: "var(--text-primary)" }}>{label}</p>
           {popular && (
             <span className="rounded-full bg-[#f6b73c]/15 border border-[#f6b73c]/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#f6b73c]">
               Populaire
             </span>
           )}
         </div>
-        <p className="text-[11px] text-[#555] mt-0.5 leading-tight">{sub}</p>
+        <p className="text-[11px] mt-0.5 leading-tight" style={{ color: "var(--text-muted)" }}>{sub}</p>
       </div>
 
       {/* Chevron — slides right on hover */}
       <ChevronRight
         size={14}
-        className="flex-shrink-0 text-[#444] transition-transform duration-150 group-hover:translate-x-1 group-hover:text-[#666]"
+        className="flex-shrink-0 transition-transform duration-150 group-hover:translate-x-1"
+        style={{ color: "var(--text-faint)" }}
         strokeWidth={2}
       />
     </button>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Edit2, Zap, Trophy, Star, TrendingUp, LogOut } from "lucide-react";
-import { signOut } from "@/lib/auth";
+import { signOut, saveProfileToDb, getAuthUser } from "@/lib/auth";
 import Avatar, {
   AVATARS,
   AVATAR_COLORS,
@@ -146,8 +146,8 @@ function StatCard({
         <Icon size={14} style={{ color: accent }} strokeWidth={2} />
       </div>
       <div>
-        <p className="text-[18px] font-bold text-white tabular-nums leading-tight">{value}</p>
-        <p className="text-[10px] text-[#555] mt-0.5 leading-tight">{label}</p>
+        <p className="text-[18px] font-bold tabular-nums leading-tight" style={{ color: "var(--text-primary)" }}>{value}</p>
+        <p className="text-[10px] mt-0.5 leading-tight" style={{ color: "var(--text-muted)" }}>{label}</p>
       </div>
     </div>
   );
@@ -171,10 +171,13 @@ export default function ProfilePage() {
     setStats({ games, wins, losses: Math.max(0, games - wins), best });
   }, []);
 
-  function handleSave(p: Profile) {
+  async function handleSave(p: Profile) {
     saveProfile(p);
     setProfile(p);
     setEditing(false);
+    // Sync to DB so the leaderboard reflects the new username/avatar
+    const user = await getAuthUser();
+    if (user) await saveProfileToDb(user.id, p);
   }
 
   if (!profile || !rank) return null;
@@ -209,23 +212,24 @@ export default function ProfilePage() {
         <Avatar avatar={profile.avatar} size="lg" />
 
         <div className="flex-1 min-w-0 relative">
-          <p className="text-lg font-bold text-white truncate leading-tight">
+          <p className="text-lg font-bold truncate leading-tight" style={{ color: "var(--text-primary)" }}>
             {profile.username}
           </p>
           <p className="text-[12px] mt-0.5 font-semibold" style={{ color: rankColor }}>
             {rank.label}
           </p>
-          <p className="text-[11px] text-[#555] mt-1">
+          <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
             {rank.points} pts
             {rank.nextLabel && (
-              <span className="text-[#444]"> · {rank.nextLabel} dans {rank.nextLabel}</span>
+              <span style={{ color: "var(--text-faint)" }}> · prochain : {rank.nextLabel}</span>
             )}
           </p>
         </div>
 
         <button
           onClick={() => setEditing(true)}
-          className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-[#222] text-[#666] transition-colors hover:bg-[#2a2a2a] hover:text-[#aaa]"
+          className="relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+          style={{ background: "var(--bg-border)", color: "var(--text-muted)" }}
           aria-label="Modifier le profil"
         >
           <Edit2 size={14} strokeWidth={2} />
@@ -233,28 +237,28 @@ export default function ProfilePage() {
       </div>
 
       {/* ── XP bar ─────────────────────────────────────── */}
-      <div className="rounded-lg bg-[#1a1a1a] border border-[#222] px-4 py-3.5">
+      <div className="rounded-lg border px-4 py-3.5" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[11px] font-bold text-[#555] uppercase tracking-wider">Progression</p>
-          <p className="text-[11px] text-[#555]">
+          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Progression</p>
+          <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
             {rank.nextLabel
-              ? <><span style={{ color: rankColor }}>{rank.points} pts</span> → <span className="text-[#888]">{rank.nextLabel}</span></>
+              ? <><span style={{ color: rankColor }}>{rank.points} pts</span> → <span style={{ color: "var(--text-muted)" }}>{rank.nextLabel}</span></>
               : <span style={{ color: rankColor }}>Rang maximum ✦</span>
             }
           </p>
         </div>
-        <div className="relative h-2 rounded-full bg-[#111] overflow-hidden">
+        <div className="relative h-2 rounded-full overflow-hidden" style={{ background: "var(--bg-border)" }}>
           <div
             className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
             style={{ width: `${pct}%`, background: rankColor }}
           />
         </div>
-        <p className="text-[10px] text-[#444] mt-1.5 text-right">{pct}%</p>
+        <p className="text-[10px] mt-1.5 text-right" style={{ color: "var(--text-faint)" }}>{pct}%</p>
       </div>
 
       {/* ── Stats grid ─────────────────────────────────── */}
       <div>
-        <p className="text-[11px] font-bold text-[#555] uppercase tracking-wider mb-2.5">
+        <p className="text-[11px] font-bold uppercase tracking-wider mb-2.5" style={{ color: "var(--text-muted)" }}>
           Statistiques
         </p>
         <div className="grid grid-cols-2 gap-2.5">
@@ -268,31 +272,31 @@ export default function ProfilePage() {
       {/* ── Sign out ───────────────────────────────────── */}
       <button
         onClick={async () => { await signOut(); router.replace("/login"); }}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#222] bg-[#1a1a1a] py-2.5 text-[13px] font-medium text-[#555] transition-colors hover:border-red-500/30 hover:text-red-400"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-[13px] font-medium transition-colors hover:border-red-500/30 hover:text-red-400"
+        style={{ borderColor: "var(--bg-border)", background: "var(--bg-surface)", color: "var(--text-muted)" }}
       >
         <LogOut size={14} strokeWidth={1.8} />
         Se déconnecter
       </button>
 
       {/* ── Rank history placeholder ────────────────────── */}
-      <div className="rounded-lg bg-[#1a1a1a] border border-[#222] px-4 py-3.5">
+      <div className="rounded-lg border px-4 py-3.5" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[11px] font-bold text-[#555] uppercase tracking-wider">Historique de rang</p>
+          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Historique de rang</p>
         </div>
         {stats.games === 0 ? (
-          <p className="text-[12px] text-[#444] text-center py-4">
+          <p className="text-[12px] text-center py-4" style={{ color: "var(--text-faint)" }}>
             Joue ta première partie pour voir ton évolution 🎮
           </p>
         ) : (
           <div className="flex items-end gap-1 h-12">
-            {/* Placeholder sparkline bars */}
             {Array.from({ length: 12 }, (_, i) => (
               <div
                 key={i}
                 className="flex-1 rounded-sm"
                 style={{
                   height: `${30 + Math.sin(i * 0.8) * 20}%`,
-                  background: i === 11 ? rankColor : "#2a2a2a",
+                  background: i === 11 ? rankColor : "var(--bg-border)",
                   opacity: 0.6 + i * 0.035,
                 }}
               />
