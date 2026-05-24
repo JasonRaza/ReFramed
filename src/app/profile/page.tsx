@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Edit2, Zap, Trophy, Target, Star, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Edit2, Zap, Trophy, Star, TrendingUp, LogOut } from "lucide-react";
+import { signOut } from "@/lib/auth";
 import Avatar, {
   AVATARS,
   AVATAR_COLORS,
@@ -154,6 +156,7 @@ function StatCard({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [rank,    setRank]    = useState<RankSnapshot | null>(null);
   const [editing, setEditing] = useState(false);
@@ -261,6 +264,15 @@ export default function ProfilePage() {
           <StatCard icon={Star}       label="Meilleur score"  value={stats.best || "—"}    accent="#d85a30" />
         </div>
       </div>
+
+      {/* ── Sign out ───────────────────────────────────── */}
+      <button
+        onClick={async () => { await signOut(); router.replace("/login"); }}
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#222] bg-[#1a1a1a] py-2.5 text-[13px] font-medium text-[#555] transition-colors hover:border-red-500/30 hover:text-red-400"
+      >
+        <LogOut size={14} strokeWidth={1.8} />
+        Se déconnecter
+      </button>
 
       {/* ── Rank history placeholder ────────────────────── */}
       <div className="rounded-lg bg-[#1a1a1a] border border-[#222] px-4 py-3.5">

@@ -1,13 +1,16 @@
 "use client";
 
-import { type ReactNode } from "react";
-import { usePathname } from "next/navigation";
+import { type ReactNode, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { useOffline } from "@/hooks/useOffline";
 import Sidebar from "./Sidebar";
+import { getAuthUser } from "@/lib/auth";
 
-// Routes that are full-screen game flows — sidebar is hidden there
-const GAME_PREFIXES = [
+// Full-screen routes — no sidebar, no auth guard
+const FULLSCREEN_PREFIXES = [
+  "/login",
+  "/reset-password",
   "/lobby",
   "/preview",
   "/pose",
@@ -55,12 +58,37 @@ function ShellLayout({ children }: { children: ReactNode }) {
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isGameRoute = GAME_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const router   = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  const isFullscreen = FULLSCREEN_PREFIXES.some((p) => pathname.startsWith(p));
+
+  useEffect(() => {
+    // Skip auth check for login page itself
+    if (pathname === "/login") { setAuthChecked(true); return; }
+
+    getAuthUser().then((user) => {
+      if (!user) {
+        router.replace("/login");
+      } else {
+        setAuthChecked(true);
+      }
+    });
+  }, [pathname, router]);
+
+  // Don't flash content while checking auth (except on login page)
+  if (!authChecked && pathname !== "/login") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-[#0e0e0e]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#222] border-t-[#f6b73c]" />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
       <OfflineBanner />
-      {isGameRoute ? (
+      {isFullscreen ? (
         children
       ) : (
         <ShellLayout>{children}</ShellLayout>
