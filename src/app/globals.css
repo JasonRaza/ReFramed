@@ -11,14 +11,14 @@
 }
 
 html {
-  background: #0a0a0a;
+  background: #0e0e0e;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
   min-height: 100dvh;
   margin: 0;
-  background-color: #0a0a0a;
+  background-color: #0e0e0e;
   color: white;
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -38,4 +38,9 @@ input {
   outline: 2px solid #7c3aed;
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* Safe-area padding for iPhone notch / home indicator */
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }

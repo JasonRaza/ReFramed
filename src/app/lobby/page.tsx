@@ -7,6 +7,7 @@ import {
   createRoom,
   fetchRoom,
   joinRoom,
+  leaveRoom,
   startGame,
   startMirrorGame,
   startRankedGame,
@@ -116,6 +117,12 @@ function LobbyContent() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  // Refs so cleanup callbacks always see the latest values (no stale closures)
+  const roomRef = useRef<Room | null>(null);
+  const phaseRef = useRef<Phase>("menu");
+
+  useEffect(() => { roomRef.current = room; }, [room]);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   useEffect(() => {
     const origin = window.location.origin;
@@ -124,10 +131,37 @@ function LobbyContent() {
     }
   }, []);
 
+  // ── Cleanup: remove player from lobby on page leave ────────────────────────
   useEffect(() => {
+    function cleanup() {
+      const r = roomRef.current;
+      const p = phaseRef.current;
+      // Only act if player is actually in a room (not just on the menu)
+      if (!r || p === "menu") return;
+      const playerId = getPlayerId();
+      void leaveRoom(r.id, playerId);
+    }
+
+    function handleBeforeUnload() {
+      const r = roomRef.current;
+      const p = phaseRef.current;
+      if (!r || p === "menu") return;
+      const playerId = getPlayerId();
+      // sendBeacon is fire-and-forget, survives the page unload
+      navigator.sendBeacon(
+        "/api/leave-room",
+        JSON.stringify({ roomId: r.id, playerId }),
+      );
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      // SPA navigation (back button, menu button, etc.)
+      cleanup();
       if (supabase && channelRef.current) {
         supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
     };
   }, []);

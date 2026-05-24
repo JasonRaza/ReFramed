@@ -146,6 +146,37 @@ export async function fetchRoom(roomId: string): Promise<Room | null> {
   return data as Room;
 }
 
+/**
+ * Remove a player from a LOBBY-state room.
+ * - If the player is the host (player1) → delete the entire room.
+ * - If the player is a guest (player2 in 1v1 / royale member) → remove their slot.
+ * No-op if the room has already started (state !== "LOBBY").
+ */
+export async function leaveRoom(roomId: string, playerId: string): Promise<void> {
+  if (!supabase) return;
+  const { data } = await supabase.from("rooms").select("*").eq("id", roomId).single();
+  if (!data) return;
+  const room = data as Room;
+  if (room.state !== "LOBBY") return;
+
+  // Host leaving → delete the whole room so guests aren't stuck
+  if (room.player1_id === playerId) {
+    await supabase.from("rooms").delete().eq("id", roomId);
+    return;
+  }
+
+  if (room.mode === "royale") {
+    const updated = (room.royale_players ?? []).filter((p) => p.id !== playerId);
+    await supabase.from("rooms").update({ royale_players: updated }).eq("id", roomId);
+  } else if (room.player2_id === playerId) {
+    await supabase.from("rooms").update({
+      player2_id: null,
+      player2_username: null,
+      player2_avatar: null,
+    }).eq("id", roomId);
+  }
+}
+
 export async function updateRoomState(
   roomId: string,
   state: GameState,
