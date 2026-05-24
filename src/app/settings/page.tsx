@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Sun, Moon, Lock, Eye, EyeOff, ChevronRight, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sun, Moon, Lock, Eye, EyeOff, ChevronRight, ChevronDown, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/hooks/useLocale";
 import { supabase } from "@/lib/supabase";
+import { signOut, getAuthUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 // ── Section wrapper ────────────────────────────────────────────────────────────
@@ -223,9 +225,15 @@ function PasswordForm({ t, onClose }: {
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  const router                = useRouter();
   const { theme, setTheme }   = useTheme();
   const { locale, setLocale, t } = useLocale();
   const [pwOpen, setPwOpen]   = useState(false);
+  const [isAuth, setIsAuth]   = useState(false);
+
+  useEffect(() => {
+    getAuthUser().then((u) => setIsAuth(!!u));
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -297,6 +305,18 @@ export default function SettingsPage() {
           </div>
         </Row>
       </Section>
+
+      {/* ── Déconnexion ───────────────────────────────── */}
+      {isAuth && (
+        <button
+          onClick={async () => { await signOut(); router.replace("/login"); }}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-[13px] font-medium transition-colors hover:border-red-500/30 hover:text-red-400"
+          style={{ borderColor: "var(--bg-border)", background: "var(--bg-surface)", color: "var(--text-muted)" }}
+        >
+          <LogOut size={14} strokeWidth={1.8} />
+          {t.signOutBtn}
+        </button>
+      )}
 
     </div>
   );

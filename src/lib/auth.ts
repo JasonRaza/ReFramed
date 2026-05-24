@@ -36,16 +36,22 @@ async function syncProfileFromDb(userId: string): Promise<Profile | null> {
   return profile;
 }
 
-/** Upsert profile in user_profiles table and sync to localStorage. */
+/** Upsert profile + stats in user_profiles table and sync to localStorage. */
 export async function saveProfileToDb(
   userId: string,
   profile: Profile,
 ): Promise<void> {
   if (!supabase) return;
+  const games = parseInt(typeof window !== "undefined" ? (localStorage.getItem("rf_total_games") ?? "0") : "0", 10);
+  const wins  = parseInt(typeof window !== "undefined" ? (localStorage.getItem("rf_total_wins")  ?? "0") : "0", 10);
+  const best  = parseInt(typeof window !== "undefined" ? (localStorage.getItem("rf_best_score")  ?? "0") : "0", 10);
   await supabase.from("user_profiles").upsert({
-    id: userId,
-    username: profile.username,
-    avatar: profile.avatar,
+    id:           userId,
+    username:     profile.username,
+    avatar:       profile.avatar,
+    games_played: games,
+    wins,
+    best_score:   best,
   });
   localStorage.setItem("reframed_profile", JSON.stringify(profile));
 }
@@ -181,13 +187,24 @@ export async function saveGameResultToDb(
 
 function friendlyError(msg?: string): string {
   if (!msg) return "Une erreur est survenue.";
-  if (msg.includes("Invalid login credentials")) return "Email ou mot de passe incorrect.";
-  if (msg.includes("Email not confirmed"))        return "Confirme ton email avant de te connecter.";
-  if (msg.includes("User already registered"))    return "Un compte existe déjà avec cet email.";
-  if (msg.includes("Password should be"))         return "Le mot de passe doit faire au moins 6 caractères.";
-  if (msg.includes("Unable to validate"))         return "Email ou mot de passe invalide.";
-  if (msg.includes("rate limit"))                 return "Trop de tentatives — attends quelques minutes et réessaie.";
-  if (msg.includes("already registered"))         return "Cet email est déjà utilisé.";
-  if (msg.includes("sending confirmation"))       return "Impossible d'envoyer l'email — réessaie dans quelques minutes.";
+  const m = msg.toLowerCase();
+  if (m.includes("invalid login credentials") || m.includes("invalid credentials"))
+    return "Email ou mot de passe incorrect.";
+  if (m.includes("email not confirmed"))
+    return "Confirme ton email avant de te connecter.";
+  if (m.includes("user already registered") || m.includes("already registered"))
+    return "Un compte existe déjà avec cet email.";
+  if (m.includes("password should be") || m.includes("password must be"))
+    return "Le mot de passe doit faire au moins 6 caractères.";
+  if (m.includes("unable to validate"))
+    return "Email ou mot de passe invalide.";
+  // Supabase free-tier email rate limit ("Email rate limit exceeded", "over_email_send_rate_limit")
+  if (m.includes("rate limit") || m.includes("over_email") || m.includes("email rate"))
+    return "Limite d'emails atteinte (quota Supabase gratuit). Solution : désactive la confirmation d'email dans le dashboard Supabase → Auth → Providers → Email.";
+  // Supabase OTP/cooldown ("For security purposes, you can only request this after X seconds")
+  if (m.includes("security purposes") || m.includes("request this after"))
+    return "Trop de tentatives — attends quelques secondes et réessaie.";
+  if (m.includes("sending confirmation") || (m.includes("send") && m.includes("email")))
+    return "Impossible d'envoyer l'email de confirmation — réessaie dans quelques minutes.";
   return msg;
 }

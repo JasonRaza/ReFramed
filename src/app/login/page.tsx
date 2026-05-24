@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User, ChevronRight } from "lucide-react";
 import Avatar, {
@@ -343,6 +343,15 @@ type Tab = "signin" | "signup";
 export default function LoginPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("signin");
+
+  // Redirect already-authenticated users away from the login page
+  useEffect(() => {
+    import("@/lib/auth").then(({ getAuthUser }) => {
+      getAuthUser().then((user) => {
+        if (user) router.replace("/");
+      });
+    });
+  }, [router]);
 
   function onSuccess() {
     router.replace("/");

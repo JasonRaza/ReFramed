@@ -13,6 +13,7 @@ import Avatar, {
 import { getProfile, saveProfile } from "@/hooks/useGameRoom";
 import { getRankSnapshot, type RankSnapshot } from "@/lib/rank";
 import { supabase } from "@/lib/supabase";
+import { useLocale } from "@/hooks/useLocale";
 import type { Profile } from "@/lib/game";
 
 // ─── Rank config ──────────────────────────────────────────────────────────────
@@ -32,10 +33,12 @@ function EditPanel({
   current,
   onSave,
   onCancel,
+  t,
 }: {
   current: Profile;
   onSave: (p: Profile) => void;
   onCancel: () => void;
+  t: ReturnType<typeof useLocale>["t"];
 }) {
   const parsed = parseAvatar(current.avatar);
   const [emoji,    setEmoji]    = useState<string>(parsed.emoji);
@@ -46,24 +49,24 @@ function EditPanel({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>Modifier le profil</h2>
+        <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>{t.editProfileTitle}</h2>
         <button
           onClick={onCancel}
-          className="text-[12px] transition-colors hover:text-[var(--text-primary)]"
-          style={{ color: "var(--text-muted)" }}
+          className="text-[12px] transition-colors"
+          style={{ color: "var(--text-faint)" }}
+          onMouseEnter={(e) => e.currentTarget.style.color = "var(--text-muted)"}
+          onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-faint)"}
         >
-          Annuler
+          {t.cancel}
         </button>
       </div>
 
-      {/* Preview */}
       <div className="flex justify-center py-2">
         <Avatar avatar={avatar} size="xl" />
       </div>
 
-      {/* Animal */}
       <div>
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Animal</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{t.animalSection}</p>
         <div className="grid grid-cols-6 gap-2">
           {AVATARS.map((a) => (
             <button
@@ -71,7 +74,7 @@ function EditPanel({
               onClick={() => setEmoji(a)}
               className={[
                 "flex items-center justify-center rounded-xl aspect-square text-xl transition-all duration-100",
-                a === emoji ? "ring-2 ring-white/60 scale-105" : "hover:bg-[var(--bg-hover)]",
+                a === emoji ? "ring-2 ring-[#f6b73c]/60 scale-105" : "hover:bg-[var(--bg-hover)]",
               ].join(" ")}
               style={a === emoji ? { background: getBg(colorKey) } : { background: "var(--bg-surface)" }}
             >
@@ -81,9 +84,8 @@ function EditPanel({
         </div>
       </div>
 
-      {/* Colour */}
       <div>
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Couleur</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{t.colorSection}</p>
         <div className="flex gap-2">
           {AVATAR_COLORS.map((c) => (
             <button
@@ -92,7 +94,7 @@ function EditPanel({
               className={[
                 "flex-1 h-7 rounded-full transition-all duration-100",
                 c.key === colorKey
-                  ? "ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-base)]"
+                  ? "ring-2 ring-[#f6b73c] ring-offset-2 ring-offset-[var(--bg-base)]"
                   : "opacity-40 hover:opacity-70",
               ].join(" ")}
               style={{ background: c.bg }}
@@ -101,12 +103,15 @@ function EditPanel({
         </div>
       </div>
 
-      {/* Username */}
       <div>
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Pseudo</p>
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{t.usernameSection}</p>
         <input
           className="w-full rounded-lg border px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-[var(--text-faint)] transition-colors placeholder:text-[var(--text-faint)]"
-          style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)", color: "var(--text-primary)" }}
+          style={{
+            background:  "var(--bg-surface)",
+            borderColor: "var(--bg-border)",
+            color:       "var(--text-primary)",
+          }}
           maxLength={16}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
@@ -121,7 +126,7 @@ function EditPanel({
         onClick={() => onSave({ username: username.trim(), avatar })}
         disabled={!username.trim()}
       >
-        Enregistrer
+        {t.saveBtn}
       </button>
     </div>
   );
@@ -160,6 +165,7 @@ function StatCard({
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t }  = useLocale();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [rank,    setRank]    = useState<RankSnapshot | null>(null);
   const [editing, setEditing] = useState(false);
@@ -175,12 +181,12 @@ export default function ProfilePage() {
       if (!user) return;
       const { data } = await supabase
         .from("user_profiles")
-        .select("total_games, total_wins, best_score")
+        .select("games_played, wins, total_games, total_wins, best_score")
         .eq("id", user.id)
         .single();
       if (data) {
-        const games = (data.total_games as number) ?? 0;
-        const wins  = (data.total_wins  as number) ?? 0;
+        const games = ((data.games_played as number | null) ?? (data.total_games as number | null)) ?? 0;
+        const wins  = ((data.wins as number | null) ?? (data.total_wins as number | null)) ?? 0;
         setStats({ games, wins, losses: Math.max(0, games - wins), best: (data.best_score as number) ?? 0 });
       }
     }
@@ -192,12 +198,21 @@ export default function ProfilePage() {
     saveProfile(p);
     setProfile(p);
     setEditing(false);
-    // Sync to DB so the leaderboard reflects the new username/avatar
     const user = await getAuthUser();
     if (user) await saveProfileToDb(user.id, p);
   }
 
-  if (!profile || !rank) return null;
+  if (!profile || !rank) {
+    return (
+      <div className="flex flex-col gap-5 animate-pulse">
+        <div className="h-24 rounded-xl bg-[#1a1a1a]" />
+        <div className="h-16 rounded-lg bg-[#1a1a1a]" />
+        <div className="grid grid-cols-2 gap-2.5">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-20 rounded-lg bg-[#1a1a1a]" />)}
+        </div>
+      </div>
+    );
+  }
 
   const { emoji, colorKey } = parseAvatar(profile.avatar);
   const avatarBg  = getBg(colorKey);
@@ -211,6 +226,7 @@ export default function ProfilePage() {
         current={profile}
         onSave={handleSave}
         onCancel={() => setEditing(false)}
+        t={t}
       />
     );
   }
@@ -227,27 +243,23 @@ export default function ProfilePage() {
         />
 
         <Avatar avatar={profile.avatar} size="lg" />
-
         <div className="flex-1 min-w-0 relative">
           <p className="text-lg font-bold truncate leading-tight" style={{ color: "var(--text-primary)" }}>
             {profile.username}
           </p>
-          <p className="text-[12px] mt-0.5 font-semibold" style={{ color: rankColor }}>
-            {rank.label}
-          </p>
+          <p className="text-[12px] mt-0.5 font-semibold" style={{ color: rankColor }}>{rank.label}</p>
           <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
             {rank.points} pts
             {rank.nextLabel && (
-              <span style={{ color: "var(--text-faint)" }}> · prochain : {rank.nextLabel}</span>
+              <span style={{ color: "var(--text-faint)" }}> · {t.nextRankLabel} : {rank.nextLabel}</span>
             )}
           </p>
         </div>
-
         <button
           onClick={() => setEditing(true)}
           className="relative flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
           style={{ background: "var(--bg-border)", color: "var(--text-muted)" }}
-          aria-label="Modifier le profil"
+          aria-label={t.editProfileTitle}
         >
           <Edit2 size={14} strokeWidth={2} />
         </button>
@@ -256,11 +268,11 @@ export default function ProfilePage() {
       {/* ── XP bar ─────────────────────────────────────── */}
       <div className="rounded-lg border px-4 py-3.5" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Progression</p>
+          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{t.progressLabel}</p>
           <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
             {rank.nextLabel
-              ? <><span style={{ color: rankColor }}>{rank.points} pts</span> → <span style={{ color: "var(--text-muted)" }}>{rank.nextLabel}</span></>
-              : <span style={{ color: rankColor }}>Rang maximum ✦</span>
+              ? <><span style={{ color: rankColor }}>{rank.points} pts</span> → <span>{rank.nextLabel}</span></>
+              : <span style={{ color: rankColor }}>{t.maxRankLabel}</span>
             }
           </p>
         </div>
@@ -276,13 +288,13 @@ export default function ProfilePage() {
       {/* ── Stats grid ─────────────────────────────────── */}
       <div>
         <p className="text-[11px] font-bold uppercase tracking-wider mb-2.5" style={{ color: "var(--text-muted)" }}>
-          Statistiques
+          {t.statsLabel}
         </p>
         <div className="grid grid-cols-2 gap-2.5">
-          <StatCard icon={Zap}        label="Parties jouées"  value={stats.games}          accent="#f6b73c" />
-          <StatCard icon={Trophy}     label="Victoires"       value={stats.wins}           accent="#1d9e75" />
-          <StatCard icon={TrendingUp} label="Taux de victoire" value={`${winRate}%`}       accent="#7f77dd" />
-          <StatCard icon={Star}       label="Meilleur score"  value={stats.best || "—"}    accent="#d85a30" />
+          <StatCard icon={Zap}        label={t.gamesPlayed}   value={stats.games}       accent="#f6b73c" />
+          <StatCard icon={Trophy}     label={t.victories}     value={stats.wins}        accent="#1d9e75" />
+          <StatCard icon={TrendingUp} label={t.winRateLabel}  value={`${winRate}%`}     accent="#7f77dd" />
+          <StatCard icon={Star}       label={t.bestScoreLabel} value={stats.best || "—"} accent="#d85a30" />
         </div>
       </div>
 
@@ -293,17 +305,17 @@ export default function ProfilePage() {
         style={{ borderColor: "var(--bg-border)", background: "var(--bg-surface)", color: "var(--text-muted)" }}
       >
         <LogOut size={14} strokeWidth={1.8} />
-        Se déconnecter
+        {t.signOutBtn}
       </button>
 
-      {/* ── Rank history placeholder ────────────────────── */}
+      {/* ── Rank history ───────────────────────────────── */}
       <div className="rounded-lg border px-4 py-3.5" style={{ background: "var(--bg-surface)", borderColor: "var(--bg-border)" }}>
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Historique de rang</p>
-        </div>
+        <p className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
+          {t.rankHistoryLabel}
+        </p>
         {stats.games === 0 ? (
           <p className="text-[12px] text-center py-4" style={{ color: "var(--text-faint)" }}>
-            Joue ta première partie pour voir ton évolution 🎮
+            {t.firstGamePrompt}
           </p>
         ) : (
           <div className="flex items-end gap-1 h-12">
