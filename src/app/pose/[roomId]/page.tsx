@@ -6,6 +6,7 @@ import CountdownTimer from "@/components/CountdownTimer";
 import { useGameRoom, usePose } from "@/hooks/useGameRoom";
 import { updateRoomState } from "@/lib/supabase";
 import { uploadPlayerImage, savePlayerImageUrl } from "@/lib/storage";
+import { saveRoyalePlayerImage } from "@/lib/supabase";
 import { playCameraShutter } from "@/lib/sounds";
 
 const DURATION = 15;
@@ -21,8 +22,15 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
   const [uploadError, setUploadError] = useState("");
 
   const pose = usePose(room?.current_pose_id);
+  const isRoyale = room?.mode === "royale";
+
+  // In royale: all non-eliminated players are active
   const isActivePlayer = Boolean(
-    playerId && room && (room.player1_id === playerId || room.player2_id === playerId),
+    playerId &&
+      room &&
+      (isRoyale
+        ? (room.royale_players ?? []).some((p) => p.id === playerId && !p.eliminated)
+        : room.player1_id === playerId || room.player2_id === playerId),
   );
 
   // Server-synced countdown from preview_started_at
@@ -46,14 +54,22 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seconds]);
 
-  // Host transitions to SCORING once both image URLs are present
+  // Host transitions to SCORING once all active players have uploaded
   useEffect(() => {
     if (!isHost || !room || room.state !== "POSE") return;
-    if (room.player1_image_url && room.player2_image_url) {
-      void updateRoomState(roomId, "SCORING");
+
+    if (isRoyale) {
+      const activePlayers = (room.royale_players ?? []).filter((p) => !p.eliminated);
+      const imgs = (room.royale_player_images ?? {}) as Record<string, string>;
+      const allUploaded = activePlayers.length > 0 && activePlayers.every((p) => imgs[p.id]);
+      if (allUploaded) void updateRoomState(roomId, "SCORING");
+    } else {
+      if (room.player1_image_url && room.player2_image_url) {
+        void updateRoomState(roomId, "SCORING");
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room?.player1_image_url, room?.player2_image_url]);
+  }, [room?.player1_image_url, room?.player2_image_url, room?.royale_player_images]);
 
   const handleCapture = useCallback(
     async (base64: string) => {
@@ -70,7 +86,11 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
         return;
       }
 
-      await savePlayerImageUrl(roomId, playerId, url);
+      if (isRoyale) {
+        await saveRoyalePlayerImage(roomId, playerId, url);
+      } else {
+        await savePlayerImageUrl(roomId, playerId, url);
+      }
       setUploaded(true);
       setUploading(false);
     },
@@ -86,13 +106,21 @@ export default function PosePage({ params }: { params: { roomId: string } }) {
   if (loading) return <Screen><Spinner /></Screen>;
   if (error) return <Screen><p className="text-red-400 text-sm">{error}</p></Screen>;
   if (room?.mode === "royale" && !isActivePlayer) {
+    // Show eliminated status
+    const wasEliminated = (room.royale_players ?? []).find(
+      (p) => p.id === playerId && p.eliminated,
+    );
     return (
       <Screen>
         <div className="max-w-sm space-y-3 px-6 text-center">
-          <p className="text-5xl">👑</p>
-          <h2 className="text-2xl font-black">Tu observes ce round</h2>
+          <p className="text-5xl">{wasEliminated ? "💀" : "⏳"}</p>
+          <h2 className="text-2xl font-black">
+            {wasEliminated ? "Tu as été éliminé !" : "En attente…"}
+          </h2>
           <p className="text-sm text-white/50">
-            MVP Battle Royale: les deux premiers joueurs font le duel, les autres suivent le résultat.
+            {wasEliminated
+              ? "Tu peux continuer à regarder la suite."
+              : "En attente que le salon démarre."}
           </p>
         </div>
       </Screen>

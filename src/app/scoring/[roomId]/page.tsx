@@ -22,18 +22,29 @@ export default function ScoringPage({ params }: { params: { roomId: string } }) 
     return () => clearInterval(id);
   }, []);
 
-  // Host triggers the scoring API exactly once — waits for both images
+  // Host triggers the scoring API exactly once — waits for all images
   useEffect(() => {
     if (!isHost || !room || calledRef.current) return;
-    if (!room.player1_image_url || !room.player2_image_url) return;
+
+    const isRoyale = room.mode === "royale";
+
+    if (isRoyale) {
+      // For royale: wait until all active players have uploaded
+      const activePlayers = (room.royale_players ?? []).filter((p) => !p.eliminated);
+      const imgs = (room.royale_player_images ?? {}) as Record<string, string>;
+      if (activePlayers.length === 0 || !activePlayers.every((p) => imgs[p.id])) return;
+    } else {
+      if (!room.player1_image_url || !room.player2_image_url) return;
+    }
+
     calledRef.current = true;
 
-    fetch("/api/score", {
+    fetch(isRoyale ? "/api/score-royale" : "/api/score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ roomId }),
     }).catch(console.error);
-    // The API updates room state to RESULTS → Realtime redirects both players
+    // The API updates room state to RESULTS → Realtime redirects all players
   }, [isHost, room, roomId]);
 
   if (loading) return <Shell><Spinner /></Shell>;

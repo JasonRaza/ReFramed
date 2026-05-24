@@ -15,13 +15,13 @@ export default function PoseCard({ pose, size = "full" }: Props) {
 
   if (size === "thumb") {
     return (
-      <div className="group relative overflow-hidden rounded-2xl aspect-[3/4] w-full border border-surface-border shadow-glass">
+      <div className="group relative overflow-hidden rounded-2xl aspect-[3/4] w-full border border-surface-border shadow-glass bg-ink">
         {!imgError ? (
           <Image
             src={pose.imageUrl}
             alt={pose.title}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            className="object-contain transition-transform duration-700 group-hover:scale-105"
             unoptimized
             onError={() => setImgError(true)}
           />
@@ -37,13 +37,13 @@ export default function PoseCard({ pose, size = "full" }: Props) {
   }
 
   return (
-    <div className="relative flex-1 w-full overflow-hidden">
+    <div className="relative flex-1 w-full overflow-hidden bg-black">
       {!imgError ? (
         <Image
           src={pose.imageUrl}
           alt={pose.title}
           fill
-          className="object-cover"
+          className="object-contain"
           unoptimized
           priority
           onError={() => setImgError(true)}

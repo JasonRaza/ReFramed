@@ -10,6 +10,7 @@ import {
   startGame,
   startMirrorGame,
   startRankedGame,
+  startRoyaleGame,
   subscribeToRoom,
   supabase,
   isSupabaseConfigured,
@@ -40,8 +41,8 @@ const MODE_COPY: Record<GameMode, { eyebrow: string; intro: string; start: strin
   },
   royale: {
     eyebrow: "Battle Royale",
-    intro: "Jusqu'à 8 joueurs peuvent rejoindre le lobby. MVP: les deux premiers jouent le round, les autres suivent.",
-    start: "Lancer le round",
+    intro: "Jusqu'à 8 joueurs. Tout le monde joue chaque round — le joueur avec le moins bon score est éliminé. Le dernier debout gagne !",
+    start: "Lancer le Battle Royale",
   },
   practice: {
     eyebrow: "Entraînement",
@@ -234,6 +235,15 @@ function LobbyContent() {
       router.replace(path ?? `/mirror-pose/${room.id}`);
     } else if (mode === "ranked") {
       const updated = await startRankedGame(room.id);
+      if (!updated) {
+        setError("Impossible de démarrer. Réessaie.");
+        setBusy(false);
+        return;
+      }
+      const path = roomPath(updated);
+      router.replace(path ?? `/preview/${room.id}`);
+    } else if (isRoyale) {
+      const updated = await startRoyaleGame(room.id);
       if (!updated) {
         setError("Impossible de démarrer. Réessaie.");
         setBusy(false);

@@ -120,16 +120,16 @@ INSERT INTO public.poses (id, title, artist, category, difficulty, image_url) VA
 -- ── SCULPTURE & ART (6 poses) ────────────────────────────────────────────────
 
 ('laocoon',
- 'Laocoon et ses Fils',
- 'Atelier de Rhodes (Vatican)',
- 'sculpture', 5,
- 'https://upload.wikimedia.org/wikipedia/commons/b/bd/Laocoon_and_His_Sons.jpg'),
+ 'Taekwondo — Forme Koryo',
+ 'Arts Martiaux Coréens — Taekwondo',
+ 'martial_arts', 4,
+ 'https://upload.wikimedia.org/wikipedia/commons/1/14/TAEKWONDO_PRACTICIONER_KORYO.jpg'),
 
 ('discobolus',
- 'Discobole',
- 'Myron — Copie romaine',
- 'sculpture', 5,
- 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Discobolus_in_National_Roman_Museum_Palazzo_Massimo_alle_Terme.JPG'),
+ 'Danseuse de Flamenco',
+ 'Danse Traditionnelle Espagnole',
+ 'ballet', 3,
+ 'https://upload.wikimedia.org/wikipedia/commons/e/ed/Flamenco_Dancer.jpg'),
 
 ('nataraja-bronze',
  'Nataraja — Shiva Dansant',
@@ -144,10 +144,10 @@ INSERT INTO public.poses (id, title, artist, category, difficulty, image_url) VA
  'https://upload.wikimedia.org/wikipedia/commons/0/09/Shiva%27s_statue_at_CERN_engaging_in_the_Nataraja_dance.jpg'),
 
 ('vitruvian-man',
- 'L''Homme de Vitruve',
- 'Léonard de Vinci — 1490',
- 'art', 3,
- 'https://upload.wikimedia.org/wikipedia/commons/2/22/Da_Vinci_Vitruve_Luc_Viatour.jpg'),
+ 'Taekwondo — Coup de Pied Coucher de Soleil',
+ 'Taekwondo — Houlgate Beach, France',
+ 'martial_arts', 4,
+ 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Taekwondo_Jumping_Side_Kick_at_Sunset%2C_Houlgate_Beach_-_01.jpg'),
 
 ('the-thinker',
  'Le Penseur',

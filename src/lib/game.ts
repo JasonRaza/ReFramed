@@ -38,6 +38,12 @@ export type RoyalePlayer = {
   username: string | null;
   avatar: string | null;
   joinedAt: string;
+  // Per-round scoring (filled by /api/score-royale)
+  score?: number | null;
+  roast?: string | null;
+  // Elimination state
+  eliminated?: boolean;
+  eliminatedRound?: number | null;
 };
 
 export type Room = {
@@ -72,6 +78,8 @@ export type Room = {
   ranked_player2_rounds: number | null;
   royale_players: RoyalePlayer[] | null;
   max_players: number | null;
+  // Per-round image map for Battle Royale: { [playerId]: imageUrl }
+  royale_player_images: Record<string, string> | null;
 };
 
 export type PoseCategory =

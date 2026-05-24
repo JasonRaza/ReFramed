@@ -14,8 +14,9 @@ export async function uploadPlayerImage(
   if (!supabase) return null;
 
   const blob = base64ToBlob(base64);
-  const path = `${roomId}/${playerId}.jpg`;
-  const opts = { upsert: true, contentType: "image/jpeg" } as const;
+  // Unique path per capture to bust CDN cache across rounds
+  const path = `${roomId}/${playerId}_${Date.now()}.jpg`;
+  const opts = { upsert: false, contentType: "image/jpeg" } as const;
 
   let { error } = await supabase.storage.from("player-images").upload(path, blob, opts);
 

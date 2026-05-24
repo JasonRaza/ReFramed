@@ -191,6 +191,20 @@ export async function fetchRandomPose(filter?: {
   return mapPose(data[Math.floor(Math.random() * data.length)] as Record<string, any>);
 }
 
+/** Saves a royale player's captured image URL atomically (safe for concurrent uploads). */
+export async function saveRoyalePlayerImage(
+  roomId: string,
+  playerId: string,
+  imageUrl: string,
+): Promise<void> {
+  if (!supabase) return;
+  await (supabase as any).rpc("merge_royale_player_image", {
+    p_room_id: roomId,
+    p_player_id: playerId,
+    p_image_url: imageUrl,
+  });
+}
+
 /** Picks a random pose from the DB and transitions the room to PREVIEW. */
 export async function startGame(roomId: string): Promise<Room | null> {
   const pose = await fetchRandomPose();
@@ -205,6 +219,53 @@ export async function startGame(roomId: string): Promise<Room | null> {
     player2_roast: null,
     winner: null,
     scored: false,
+  });
+}
+
+/** Starts a Battle Royale game: picks a pose and enters PREVIEW. Clears previous round data. */
+export async function startRoyaleGame(roomId: string): Promise<Room | null> {
+  const pose = await fetchRandomPose();
+  if (!pose) return null;
+  return updateRoomState(roomId, "PREVIEW", {
+    current_pose_id: pose.id,
+    current_round: 1,
+    player1_image_url: null,
+    player2_image_url: null,
+    player1_score: null,
+    player2_score: null,
+    player1_roast: null,
+    player2_roast: null,
+    winner: null,
+    scored: false,
+    royale_player_images: {},
+  });
+}
+
+/** Starts next royale round: new pose, clears per-round data, scores stay on players. */
+export async function startNextRoyaleRound(room: Room): Promise<Room | null> {
+  const pose = await fetchRandomPose();
+  if (!pose) return null;
+
+  // Clear per-round fields on each player but keep eliminated/eliminatedRound
+  const clearedPlayers = (room.royale_players ?? []).map((p) => ({
+    ...p,
+    score: null,
+    roast: null,
+  }));
+
+  return updateRoomState(room.id, "PREVIEW", {
+    current_pose_id: pose.id,
+    current_round: (room.current_round ?? 1) + 1,
+    player1_image_url: null,
+    player2_image_url: null,
+    player1_score: null,
+    player2_score: null,
+    player1_roast: null,
+    player2_roast: null,
+    winner: null,
+    scored: false,
+    royale_players: clearedPlayers,
+    royale_player_images: {},
   });
 }
 
