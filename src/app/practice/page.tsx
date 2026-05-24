@@ -10,6 +10,14 @@ import type { Pose, PracticeResult } from "@/lib/game";
 
 type Phase = "ready" | "preview" | "pose" | "scoring" | "result";
 
+function proxyUrl(url: string): string {
+  if (!url) return url;
+  if (url.includes("wikimedia.org") || url.includes("wikipedia.org")) {
+    return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 const PREVIEW_SECS = 5;
 const POSE_SECS = 15;
 
@@ -288,7 +296,7 @@ export default function PracticePage() {
         <div className="relative overflow-hidden rounded-3xl aspect-[3/4] w-full bg-ink border border-surface-border shadow-glass">
           {!poseImgError ? (
             <Image
-              src={pose.imageUrl} alt={pose.title}
+              src={proxyUrl(pose.imageUrl)} alt={pose.title}
               fill className="object-cover" unoptimized
               onError={() => setPoseImgError(true)}
             />
@@ -333,7 +341,7 @@ export default function PracticePage() {
       <main className="relative flex min-h-dvh flex-col overflow-hidden bg-black">
         {!poseImgError ? (
           <Image
-            src={pose.imageUrl} alt={pose.title}
+            src={proxyUrl(pose.imageUrl)} alt={pose.title}
             fill className="object-cover opacity-90" unoptimized priority
             onError={() => setPoseImgError(true)}
           />
@@ -381,7 +389,7 @@ export default function PracticePage() {
             style={{ width: `${progress}%` }}
           />
         </div>
-        <PracticeCamera ghost={pose.imageUrl} onCapture={handleCapture} />
+        <PracticeCamera ghost={proxyUrl(pose.imageUrl)} onCapture={handleCapture} />
       </main>
     );
   }
@@ -428,7 +436,7 @@ export default function PracticePage() {
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-ink border border-surface-border shadow-glass">
               {!poseImgError ? (
                 <Image
-                  src={pose.imageUrl} alt={pose.title}
+                  src={proxyUrl(pose.imageUrl)} alt={pose.title}
                   fill className="object-cover" unoptimized
                   onError={() => setPoseImgError(true)}
                 />
