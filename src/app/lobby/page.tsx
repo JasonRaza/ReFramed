@@ -69,31 +69,27 @@ function PlayerSlot({
 }) {
   return (
     <div className={[
-      "flex items-center gap-4 rounded-2xl border px-4 py-3.5 transition-all duration-300",
+      "flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors",
       isReady
-        ? "bg-emerald-500/10 border-emerald-500/30 shadow-[inset_0_1px_0_0_rgba(16,185,129,0.2)]"
-        : "bg-surface border-surface-border shadow-glass",
+        ? "bg-surface border-emerald-500/30"
+        : "bg-surface border-surface-border",
     ].join(" ")}>
       {isReady ? (
-        <div className="relative">
-          <Avatar avatar={avatar ?? DEFAULT_AVATAR} size="md" />
-          <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 border-2 border-[#0f0f14] text-[10px] text-white">
-            ✓
-          </div>
-        </div>
+        <Avatar avatar={avatar ?? DEFAULT_AVATAR} size="md" />
       ) : (
-        <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-dashed border-white/20 flex items-center justify-center text-white/20 text-lg">
-          <div className="h-4 w-4 animate-pulse rounded-full bg-white/10" />
+        <div className="w-10 h-10 rounded-full bg-white/5 border border-dashed border-white/15 flex items-center justify-center">
+          <div className="h-3 w-3 animate-pulse rounded-full bg-white/20" />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className={`font-bold truncate text-base ${isReady ? "text-white" : "text-white/50"}`}>
+        <p className={`font-semibold truncate text-sm ${isReady ? "text-white" : "text-white/40"}`}>
           {isReady ? (username ?? label) : label}
         </p>
-        <p className={`text-xs font-medium mt-0.5 ${isReady ? "text-emerald-400" : "text-white/30"}`}>
-          {isReady ? "Prêt pour le duel" : "En attente d'un adversaire…"}
+        <p className={`text-xs mt-0.5 ${isReady ? "text-emerald-400" : "text-white/25"}`}>
+          {isReady ? "Connecté" : "En attente…"}
         </p>
       </div>
+      {isReady && <span className="text-emerald-500 text-sm">✓</span>}
     </div>
   );
 }
@@ -301,20 +297,15 @@ function LobbyContent() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-8 pt-6 animate-fade-up">
-      <header className="mb-8 flex items-center justify-between">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-8 pt-6 animate-fade-up">
+      <header className="mb-6 flex items-center justify-between">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 mb-3">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-slow" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
-              {copy.eyebrow}
-            </p>
-          </div>
-          <h1 className="text-4xl font-black tracking-tight leading-none bg-gradient-to-br from-white to-white/50 bg-clip-text text-transparent">ReFramed</h1>
+          <p className="text-xs text-white/40 mb-0.5">{copy.eyebrow}</p>
+          <h1 className="text-2xl font-bold text-white">ReFramed</h1>
         </div>
         <button
           onClick={() => router.push("/")}
-          className="rounded-xl bg-surface border border-surface-border shadow-glass px-3 py-2 text-sm font-medium text-white/70 active:scale-95 hover:bg-surface-hover hover:text-white transition-all"
+          className="rounded-xl bg-surface border border-surface-border px-3 py-2 text-sm text-white/60 active:bg-surface-hover transition-colors"
         >
           ← Menu
         </button>
@@ -335,23 +326,22 @@ function LobbyContent() {
             )}
 
             <button
-              className="group relative overflow-hidden rounded-2xl bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-50 transition-all"
+              className="rounded-xl bg-primary px-5 py-3.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-40 transition-opacity"
               onClick={handleCreate}
               disabled={busy}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               {busy ? "Création…" : "Créer un salon"}
             </button>
 
-            <div className="flex items-center gap-4 py-2">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent to-white/10" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">ou rejoindre</span>
-              <div className="h-px flex-1 bg-gradient-to-l from-transparent to-white/10" />
+            <div className="flex items-center gap-3 py-1">
+              <div className="h-px flex-1 bg-surface-border" />
+              <span className="text-xs text-white/30">ou rejoindre</span>
+              <div className="h-px flex-1 bg-surface-border" />
             </div>
 
             <div className="flex gap-2">
               <input
-                className="flex-1 rounded-2xl bg-surface border border-surface-border shadow-glass px-4 py-3 text-center text-2xl font-black uppercase tracking-[0.3em] placeholder:text-white/10 focus:outline-none focus:border-primary/50 focus:bg-surface-hover transition-all"
+                className="flex-1 rounded-xl bg-surface border border-surface-border px-4 py-3 text-center text-2xl font-bold uppercase tracking-[0.25em] placeholder:text-white/15 focus:outline-none focus:border-white/25 transition-colors"
                 maxLength={4}
                 placeholder="CODE"
                 value={joinInput}
@@ -359,7 +349,7 @@ function LobbyContent() {
                 onKeyDown={(e) => e.key === "Enter" && handleJoin()}
               />
               <button
-                className="rounded-2xl bg-surface border border-surface-border shadow-glass px-6 py-3 font-bold active:scale-[0.98] disabled:opacity-40 hover:bg-surface-hover hover:border-white/20 transition-all"
+                className="rounded-xl bg-surface border border-surface-border px-5 py-3 font-semibold text-sm active:bg-surface-hover disabled:opacity-40 transition-colors"
                 onClick={handleJoin}
                 disabled={busy || joinInput.length !== 4}
               >
@@ -381,17 +371,11 @@ function LobbyContent() {
         {/* ── HOST WAITING ── */}
         {phase === "host-waiting" && room && (
           <div className="flex flex-1 flex-col items-center justify-between py-2">
-            <div className="text-center space-y-4 w-full">
-              <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 backdrop-blur-md shadow-glass">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-slow" />
-                <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Code du salon</p>
-              </div>
-              <div className="relative py-4">
-                <p className="text-7xl font-black tracking-[0.2em] tabular-nums bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent drop-shadow-lg">{room.code}</p>
-                <div className="absolute inset-0 -z-10 blur-[40px] bg-primary/20 rounded-full" />
-              </div>
-              <p className="text-white/50 text-sm font-medium">
-                {isRoyale ? "Partage ce code avec tous les joueurs" : "Partage ce code avec ton adversaire"}
+            <div className="text-center space-y-3 w-full">
+              <p className="text-xs text-white/40">Code du salon</p>
+              <p className="text-7xl font-bold tracking-[0.2em] tabular-nums text-white">{room.code}</p>
+              <p className="text-sm text-white/40">
+                {isRoyale ? "Partage ce code avec tes joueurs" : "Partage ce code avec ton adversaire"}
               </p>
             </div>
 
@@ -422,13 +406,10 @@ function LobbyContent() {
               )}
 
               <button
-                className="group relative overflow-hidden w-full rounded-2xl bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-40 transition-all mt-4"
+                className="w-full rounded-xl bg-primary px-5 py-3.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-40 transition-opacity mt-2"
                 onClick={handleStart}
                 disabled={!canStart || busy}
               >
-                {!(!canStart || busy) && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-                )}
                 {busy ? "Démarrage…" : copy.start}
               </button>
             </div>
@@ -437,14 +418,11 @@ function LobbyContent() {
 
         {/* ── GUEST WAITING ── */}
         {phase === "guest-waiting" && room && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
-              <div className="h-14 w-14 animate-spin rounded-full border-4 border-surface-border border-t-primary relative z-10" />
-            </div>
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-surface-border border-t-primary" />
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-primary mb-1">Salon {room.code}</p>
-              <p className="text-2xl font-black tracking-tight text-white">En attente de l&apos;hôte…</p>
+              <p className="text-xs text-white/40 mb-1">Salon {room.code}</p>
+              <p className="text-xl font-bold text-white">En attente de l&apos;hôte…</p>
             </div>
             <div className="w-full space-y-3 mt-4">
               {room.mode === "royale" ? (

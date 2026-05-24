@@ -10,6 +10,18 @@ import { applyRankDeltaOnce, getRankSnapshot, rankDeltaForResult, type RankSnaps
 import Avatar, { DEFAULT_AVATAR } from "@/components/Avatar";
 import type { Pose } from "@/lib/game";
 
+/** Route Wikimedia images through our server proxy to bypass hotlink blocking. */
+function proxyUrl(url: string): string {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.endsWith(".wikimedia.org")) {
+      return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+    }
+  } catch { /* ignore */ }
+  return url;
+}
+
 // ── inline confetti ───────────────────────────────────────────────────────────
 function launchConfetti() {
   if (typeof window === "undefined") return;
@@ -161,36 +173,30 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-8 pt-5 gap-4 animate-fade-up">
 
-      {/* Winner badge */}
-      <div className="text-center space-y-1 pt-2">
-        {!isDraw && <div className="text-4xl">{p1Wins === (isHost) ? "🏆" : "😤"}</div>}
-        {isDraw && <div className="text-4xl">🤝</div>}
-        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-purple-400">Résultats</p>
-        {isRanked && (
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-yellow-200">
-            Round {currentRound} / {totalRounds} · {rankedP1Rounds}-{rankedP2Rounds}
-          </p>
+      {/* Header */}
+      <div className="text-center pt-2 space-y-1">
+        <div className="text-3xl">
+          {isDraw ? "🤝" : (p1Wins === isHost) ? "🏆" : "😤"}
+        </div>
+        <p className="text-xs text-white/40">Résultats</p>
+        {isRanked && !rankedMatchDone && (
+          <p className="text-xs text-white/40">Round {currentRound}/{totalRounds} · {rankedP1Rounds}-{rankedP2Rounds}</p>
         )}
-        <h2 className={`text-3xl font-black ${p1Wins || p2Wins ? "text-yellow-300" : ""}`}>
+        <h2 className={`text-2xl font-bold ${(p1Wins || p2Wins) && !isRanked ? "text-yellow-300" : "text-white"}`}>
           {isRanked && !rankedMatchDone ? "Round terminé" : winnerLabel}
         </h2>
-        {isRanked && (
-          <div className="mx-auto inline-flex flex-col rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm font-black text-yellow-200">
-            <span>{rankedMatchDone ? "Match classé terminé" : "Best of 5 en cours"}</span>
-            {rankedMatchDone && rank && (
-              <span className="text-xs text-yellow-100/80">
-                Rang: {rank.label} · {rank.points} pts ({rankDelta >= 0 ? "+" : ""}{rankDelta})
-              </span>
-            )}
-          </div>
+        {isRanked && rankedMatchDone && rank && (
+          <p className="text-xs text-amber-400">
+            {rank.label} · {rank.points} pts ({rankDelta >= 0 ? "+" : ""}{rankDelta})
+          </p>
         )}
         {isRoyale && !royaleGameOver && royaleEliminated && (
-          <p className="mx-auto inline-flex rounded-full border border-red-400/30 bg-red-500/10 px-4 py-2 text-xs font-bold text-red-200">
-            💀 {royaleEliminated.username ?? "Joueur"} éliminé — {royaleActive.length} joueur{royaleActive.length > 1 ? "s" : ""} restant{royaleActive.length > 1 ? "s" : ""}
+          <p className="text-sm text-red-400">
+            💀 {royaleEliminated.username ?? "Joueur"} éliminé · {royaleActive.length} restant{royaleActive.length > 1 ? "s" : ""}
           </p>
         )}
         {isRoyale && royaleGameOver && royaleWinner && (
-          <p className="mx-auto inline-flex rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-xs font-bold text-amber-100">
+          <p className="text-sm text-amber-400">
             🏆 {royaleWinner.username ?? "Joueur"} remporte le Battle Royale !
           </p>
         )}
@@ -270,30 +276,30 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
       {isRanked && !rankedMatchDone ? (
         isHost ? (
           <button
-            className="min-h-[44px] w-full rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-50"
+            className="w-full rounded-xl bg-primary px-5 py-3.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-40 transition-opacity"
             onClick={handleNextRankedRound}
             disabled={advancing}
           >
             {advancing ? "Chargement…" : "Round suivant"}
           </button>
         ) : (
-          <p className="text-center text-sm text-white/40">En attente de l&apos;hôte pour le round suivant…</p>
+          <p className="text-center text-sm text-white/40">En attente de l&apos;hôte…</p>
         )
       ) : isRoyale && !royaleGameOver ? (
         isHost ? (
           <button
-            className="min-h-[44px] w-full rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98] disabled:opacity-50"
+            className="w-full rounded-xl bg-primary px-5 py-3.5 text-base font-semibold text-white active:opacity-80 disabled:opacity-40 transition-opacity"
             onClick={handleNextRoyaleRound}
             disabled={advancing}
           >
-            {advancing ? "Chargement…" : `Round suivant (${royaleActive.length} joueurs)`}
+            {advancing ? "Chargement…" : `Round suivant · ${royaleActive.length} joueurs`}
           </button>
         ) : (
-          <p className="text-center text-sm text-white/40">En attente de l&apos;hôte pour le round suivant…</p>
+          <p className="text-center text-sm text-white/40">En attente de l&apos;hôte…</p>
         )
       ) : (
         <button
-          className="min-h-[44px] w-full rounded-[14px] bg-primary px-5 py-4 text-lg font-bold shadow-glow active:scale-[0.98]"
+          className="w-full rounded-xl bg-primary px-5 py-3.5 text-base font-semibold text-white active:opacity-80 transition-opacity"
           onClick={() => router.push(isRanked ? "/lobby?mode=ranked" : isRoyale ? "/lobby?mode=royale" : "/lobby")}
         >
           Rejouer
@@ -312,7 +318,7 @@ function ReferenceCard({ pose }: { pose: Pose | null }) {
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-ink">
         {pose && !imgError ? (
           <Image
-            src={pose.imageUrl}
+            src={proxyUrl(pose.imageUrl)}
             alt={pose.title}
             fill
             className="object-contain"
@@ -354,13 +360,12 @@ function PlayerCard({
   return (
     <div
       className={[
-        "flex flex-col overflow-hidden rounded-2xl border transition-all duration-500",
+        "flex flex-col overflow-hidden rounded-xl border transition-colors",
         isWinner
-          ? "border-amber-400/50 bg-amber-400/10 scale-[1.02] shadow-[0_0_30px_rgba(251,191,36,0.15)] z-10"
-          : "border-surface-border bg-surface shadow-glass",
+          ? "border-amber-400/40 bg-amber-400/5"
+          : "border-surface-border bg-surface",
       ].join(" ")}
     >
-      {isWinner && <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-300 z-10" />}
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-ink">
         {imageUrl && !imgError ? (
           <Image

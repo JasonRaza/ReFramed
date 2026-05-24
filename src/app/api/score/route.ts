@@ -1,21 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { scoreRound } from "@/lib/scoring";
+import { fetchImageBase64 } from "@/lib/fetch-image";
 import type { Pose, Room } from "@/lib/game";
-
-async function fetchBase64(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, {
-      next: { revalidate: 0 },
-      headers: { "User-Agent": "ReFramed-Game/1.0" },
-    });
-    if (!res.ok) return null;
-    const buffer = await res.arrayBuffer();
-    return Buffer.from(buffer).toString("base64");
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { roomId?: string };
@@ -66,9 +53,9 @@ export async function POST(request: Request) {
 
   // Fetch all three images in parallel
   const [refB64, p1B64, p2B64] = await Promise.all([
-    fetchBase64(pose.imageUrl),
-    fetchBase64(room.player1_image_url),
-    fetchBase64(room.player2_image_url),
+    fetchImageBase64(pose.imageUrl),
+    fetchImageBase64(room.player1_image_url),
+    fetchImageBase64(room.player2_image_url),
   ]);
 
   if (!refB64) console.error("[score] ❌ Image référence non chargée:", pose.imageUrl);

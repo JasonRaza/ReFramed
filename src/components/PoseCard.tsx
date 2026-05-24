@@ -4,6 +4,24 @@ import { useState } from "react";
 import Image from "next/image";
 import type { Pose } from "@/lib/game";
 
+/** Wikimedia and other CDN images that block hotlinking get proxied through our server. */
+function proxyUrl(url: string): string {
+  if (!url) return url;
+  try {
+    const parsed = new URL(url);
+    const needsProxy =
+      parsed.hostname === "upload.wikimedia.org" ||
+      parsed.hostname === "commons.wikimedia.org" ||
+      parsed.hostname.endsWith(".wikimedia.org");
+    if (needsProxy) {
+      return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+    }
+  } catch {
+    // malformed URL — return as-is
+  }
+  return url;
+}
+
 interface Props {
   pose: Pose;
   /** full = fills its container with gradient overlay. thumb = compact card. */
@@ -18,7 +36,7 @@ export default function PoseCard({ pose, size = "full" }: Props) {
       <div className="group relative overflow-hidden rounded-2xl aspect-[3/4] w-full border border-surface-border shadow-glass bg-ink">
         {!imgError ? (
           <Image
-            src={pose.imageUrl}
+            src={proxyUrl(pose.imageUrl)}
             alt={pose.title}
             fill
             className="object-contain transition-transform duration-700 group-hover:scale-105"
@@ -40,7 +58,7 @@ export default function PoseCard({ pose, size = "full" }: Props) {
     <div className="relative flex-1 w-full overflow-hidden bg-black">
       {!imgError ? (
         <Image
-          src={pose.imageUrl}
+          src={proxyUrl(pose.imageUrl)}
           alt={pose.title}
           fill
           className="object-contain"

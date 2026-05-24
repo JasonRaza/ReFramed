@@ -45,9 +45,8 @@ export default function PreviewPage({ params }: { params: { roomId: string } }) 
 
       {/* "Mémorise" badge */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 backdrop-blur-md shadow-glass">
-          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-slow" />
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Mémorise !</p>
+        <div className="rounded-full bg-black/60 border border-white/15 px-3 py-1.5">
+          <p className="text-xs font-semibold text-white/80">Mémorise la pose</p>
         </div>
       </div>
 

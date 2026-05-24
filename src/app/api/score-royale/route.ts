@@ -1,20 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { scorePractice } from "@/lib/scoring";
+import { fetchImageBase64 } from "@/lib/fetch-image";
 import type { Room, RoyalePlayer } from "@/lib/game";
-
-async function fetchBase64(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, {
-      next: { revalidate: 0 },
-      headers: { "User-Agent": "ReFramed-Game/1.0" },
-    });
-    if (!res.ok) return null;
-    return Buffer.from(await res.arrayBuffer()).toString("base64");
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { roomId?: string };
@@ -56,7 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Pose introuvable." }, { status: 400 });
   }
 
-  const refB64 = await fetchBase64(poseData.image_url as string);
+  const refB64 = await fetchImageBase64(poseData.image_url as string);
   const images = (room.royale_player_images ?? {}) as Record<string, string>;
 
   // Active (non-eliminated) players only
@@ -75,7 +63,7 @@ export async function POST(request: Request) {
       if (!imageUrl) {
         return { ...player, score: 0, roast: "Photo manquante… éliminé !" };
       }
-      const b64 = await fetchBase64(imageUrl);
+      const b64 = await fetchImageBase64(imageUrl);
       const result = await scorePractice(refB64 ?? "", b64 ?? "");
       return { ...player, score: result.score, roast: result.roast };
     }),

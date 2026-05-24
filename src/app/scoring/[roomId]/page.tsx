@@ -52,30 +52,21 @@ export default function ScoringPage({ params }: { params: { roomId: string } }) 
 
   return (
     <Shell>
-      {/* Pulsing judge icon */}
-      <div className="relative flex h-28 w-28 items-center justify-center">
-        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping opacity-20" />
-        <div className="absolute inset-2 rounded-full bg-primary/15 animate-pulse-slow" />
-        <div className="relative flex h-full w-full items-center justify-center rounded-full border border-primary/40 bg-primary/25 text-5xl">
-          ⚖️
-        </div>
+      <div className="text-5xl">⚖️</div>
+
+      <div className="space-y-1.5 text-center">
+        <h2 className="text-xl font-bold text-white">Délibération…</h2>
+        <p className="text-sm text-white/40">Claude analyse les poses</p>
       </div>
 
-      <div className="space-y-2 text-center">
-        <h2 className="text-3xl font-black tracking-tight">Délibération…</h2>
-        <p className="text-sm text-white/40">Claude analyse vos silhouettes</p>
-      </div>
-
-      {/* Animated dots */}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
-            className="h-3 w-3 rounded-full transition-all duration-300"
+            className="h-2 w-2 rounded-full transition-all duration-300"
             style={{
-              background: dotStep > i ? "#a855f7" : "rgba(255,255,255,0.12)",
-              transform: dotStep === i ? "scale(1.5)" : "scale(1)",
-              boxShadow: dotStep > i ? "0 0 8px rgba(168,85,247,0.6)" : "none",
+              background: dotStep > i ? "#7c3aed" : "rgba(255,255,255,0.15)",
+              transform: dotStep === i ? "scale(1.4)" : "scale(1)",
             }}
           />
         ))}

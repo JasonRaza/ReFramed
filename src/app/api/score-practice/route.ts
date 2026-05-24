@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { scorePractice } from "@/lib/scoring";
-
-async function fetchBase64(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, {
-      next: { revalidate: 0 },
-      headers: { "User-Agent": "ReFramed-Game/1.0" },
-    });
-    if (!res.ok) return null;
-    return Buffer.from(await res.arrayBuffer()).toString("base64");
-  } catch {
-    return null;
-  }
-}
+import { fetchImageBase64 } from "@/lib/fetch-image";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { poseId?: string; playerBase64?: string };
@@ -37,7 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Pose introuvable." }, { status: 404 });
   }
 
-  const refB64 = await fetchBase64(poseData.image_url as string);
+  const refB64 = await fetchImageBase64(poseData.image_url as string);
   const result = await scorePractice(refB64 ?? "", body.playerBase64);
   return NextResponse.json(result);
 }
