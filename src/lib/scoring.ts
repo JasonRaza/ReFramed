@@ -88,13 +88,27 @@ function img(data: string) {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
+/** Strips markdown code fences that Claude sometimes wraps around JSON. */
+function parseJson<T>(raw: string): T {
+  const clean = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+  return JSON.parse(clean) as T;
+}
+
 export async function scoreRound(
   referenceBase64: string,
   player1Base64: string,
   player2Base64: string,
 ): Promise<ScoreResult> {
   const anthropic = makeClient();
-  if (!anthropic) return DUEL_FALLBACK;
+  if (!anthropic) {
+    console.error("[scoring] ANTHROPIC_API_KEY manquant — fallback 50/50");
+    return DUEL_FALLBACK;
+  }
+
+  if (!referenceBase64) {
+    console.error("[scoring] Image de référence vide — impossible de scorer");
+    return DUEL_FALLBACK;
+  }
 
   async function attempt(): Promise<ScoreResult> {
     const response = await anthropic!.messages.create({
@@ -107,12 +121,21 @@ export async function scoreRound(
       }],
     });
     const text = response.content.find((b) => b.type === "text")?.text;
-    if (!text) throw new Error("empty response");
-    return JSON.parse(text) as ScoreResult;
+    if (!text) throw new Error("réponse vide de Claude");
+    return parseJson<ScoreResult>(text);
   }
 
-  try { return await attempt(); }
-  catch { try { return await attempt(); } catch { return DUEL_FALLBACK; } }
+  try {
+    return await attempt();
+  } catch (e1) {
+    console.error("[scoring] attempt 1 échouée:", e1);
+    try {
+      return await attempt();
+    } catch (e2) {
+      console.error("[scoring] attempt 2 échouée:", e2);
+      return DUEL_FALLBACK;
+    }
+  }
 }
 
 export async function scorePractice(
@@ -120,7 +143,10 @@ export async function scorePractice(
   playerBase64: string,
 ): Promise<PracticeResult> {
   const anthropic = makeClient();
-  if (!anthropic) return PRACTICE_FALLBACK;
+  if (!anthropic) {
+    console.error("[scoring] ANTHROPIC_API_KEY manquant — fallback practice");
+    return PRACTICE_FALLBACK;
+  }
 
   async function attempt(): Promise<PracticeResult> {
     const response = await anthropic!.messages.create({
@@ -133,10 +159,19 @@ export async function scorePractice(
       }],
     });
     const text = response.content.find((b) => b.type === "text")?.text;
-    if (!text) throw new Error("empty response");
-    return JSON.parse(text) as PracticeResult;
+    if (!text) throw new Error("réponse vide de Claude");
+    return parseJson<PracticeResult>(text);
   }
 
-  try { return await attempt(); }
-  catch { try { return await attempt(); } catch { return PRACTICE_FALLBACK; } }
+  try {
+    return await attempt();
+  } catch (e1) {
+    console.error("[scoring] practice attempt 1 échouée:", e1);
+    try {
+      return await attempt();
+    } catch (e2) {
+      console.error("[scoring] practice attempt 2 échouée:", e2);
+      return PRACTICE_FALLBACK;
+    }
+  }
 }

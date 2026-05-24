@@ -71,6 +71,10 @@ export async function POST(request: Request) {
     fetchBase64(room.player2_image_url),
   ]);
 
+  if (!refB64) console.error("[score] ❌ Image référence non chargée:", pose.imageUrl);
+  if (!p1B64) console.error("[score] ❌ Image joueur 1 non chargée:", room.player1_image_url);
+  if (!p2B64) console.error("[score] ❌ Image joueur 2 non chargée:", room.player2_image_url);
+
   const result = await scoreRound(
     refB64 ?? "",
     p1B64 ?? "",
