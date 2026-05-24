@@ -10,6 +10,7 @@ import { useLocale } from "@/hooks/useLocale";
 import Sidebar from "./Sidebar";
 import Tutorial from "./Tutorial";
 import { getAuthUser } from "@/lib/auth";
+import { initUserStore } from "@/lib/userStore";
 import { cn } from "@/lib/utils";
 
 const AUTH_REQUIRED_PREFIXES = ["/profile", "/rankings"];
@@ -124,6 +125,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   const isFullscreen = FULLSCREEN_PREFIXES.some((p) => pathname.startsWith(p));
   const requiresAuth = AUTH_REQUIRED_PREFIXES.some((p) => pathname.startsWith(p));
+
+  // Load all user data from DB into the store on startup
+  useEffect(() => { void initUserStore(); }, []);
 
   useEffect(() => {
     if (!requiresAuth) { setAuthChecked(true); return; }

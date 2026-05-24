@@ -6,6 +6,11 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { fetchPoseById, supabase, subscribeToRoom } from "@/lib/supabase";
 import { STATE_ROUTE } from "@/lib/game";
 import type { GameState, Pose, Profile, Room } from "@/lib/game";
+import {
+  getUserId,
+  getProfile as storeGetProfile,
+  saveProfile as storeSaveProfile,
+} from "@/lib/userStore";
 
 function uuid(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -17,9 +22,16 @@ function uuid(): string {
   });
 }
 
-/** Stable per-device player ID — created on first call, stored in localStorage. */
+/**
+ * Returns the player ID for multiplayer rooms.
+ * Uses the Supabase user ID for authenticated users,
+ * falls back to a stable per-device UUID for guests.
+ */
 export function getPlayerId(): string {
   if (typeof window === "undefined") return "";
+  const uid = getUserId();
+  if (uid) return uid;
+  // Guest fallback
   let id = localStorage.getItem("reframed_player_id");
   if (!id) {
     id = uuid();
@@ -28,20 +40,15 @@ export function getPlayerId(): string {
   return id;
 }
 
+/** Returns the current user's profile from the store (populated from DB). */
 export function getProfile(): Profile | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem("reframed_profile");
-    if (!raw) return null;
-    return JSON.parse(raw) as Profile;
-  } catch {
-    return null;
-  }
+  const p = storeGetProfile();
+  return p.username ? p : null;
 }
 
+/** Saves the profile to DB via the store. */
 export function saveProfile(profile: Profile): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("reframed_profile", JSON.stringify(profile));
+  void storeSaveProfile(profile);
 }
 
 /** Fetches a pose from the DB when a poseId is available. */

@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Edit2, Zap, Trophy, Star, TrendingUp, LogOut } from "lucide-react";
-import { signOut, saveProfileToDb, getAuthUser } from "@/lib/auth";
+import { signOut } from "@/lib/auth";
+import { saveProfile as storeSaveProfile, useUserStore } from "@/lib/userStore";
 import Avatar, {
   AVATARS,
   AVATAR_COLORS,
   getBg,
   parseAvatar,
 } from "@/components/Avatar";
-import { getProfile, saveProfile } from "@/hooks/useGameRoom";
-import { getRankSnapshot, type RankSnapshot } from "@/lib/rank";
-import { supabase } from "@/lib/supabase";
+import { getRankSnapshot } from "@/lib/rank";
 import { useLocale } from "@/hooks/useLocale";
 import type { Profile } from "@/lib/game";
 
@@ -164,51 +163,33 @@ function StatCard({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const router = useRouter();
-  const { t }  = useLocale();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [rank,    setRank]    = useState<RankSnapshot | null>(null);
+  const router  = useRouter();
+  const { t }   = useLocale();
+  const store   = useUserStore();
   const [editing, setEditing] = useState(false);
-  const [stats,   setStats]   = useState({ games: 0, wins: 0, losses: 0, best: 0 });
 
-  useEffect(() => {
-    setProfile(getProfile());
-    setRank(getRankSnapshot());
-
-    async function loadStats() {
-      if (!supabase) return;
-      const user = await getAuthUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("user_profiles")
-        .select("games_played, wins, total_games, total_wins, best_score")
-        .eq("id", user.id)
-        .single();
-      if (data) {
-        const games = ((data.games_played as number | null) ?? (data.total_games as number | null)) ?? 0;
-        const wins  = ((data.wins as number | null) ?? (data.total_wins as number | null)) ?? 0;
-        setStats({ games, wins, losses: Math.max(0, games - wins), best: (data.best_score as number) ?? 0 });
-      }
-    }
-
-    void loadStats();
-  }, []);
+  const profile = store.profile;
+  const rank    = getRankSnapshot();
+  const stats   = {
+    games:  store.games,
+    wins:   store.wins,
+    losses: Math.max(0, store.games - store.wins),
+    best:   store.best,
+  };
 
   async function handleSave(p: Profile) {
-    saveProfile(p);
-    setProfile(p);
+    await storeSaveProfile(p);
     setEditing(false);
-    const user = await getAuthUser();
-    if (user) await saveProfileToDb(user.id, p);
   }
 
-  if (!profile || !rank) {
+  // Show skeleton while DB data is loading
+  if (!store.ready) {
     return (
       <div className="flex flex-col gap-5 animate-pulse">
-        <div className="h-24 rounded-xl bg-[#1a1a1a]" />
-        <div className="h-16 rounded-lg bg-[#1a1a1a]" />
+        <div className="h-24 rounded-xl" style={{ background: "var(--bg-surface)" }} />
+        <div className="h-16 rounded-lg"  style={{ background: "var(--bg-surface)" }} />
         <div className="grid grid-cols-2 gap-2.5">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-20 rounded-lg bg-[#1a1a1a]" />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="h-20 rounded-lg" style={{ background: "var(--bg-surface)" }} />)}
         </div>
       </div>
     );

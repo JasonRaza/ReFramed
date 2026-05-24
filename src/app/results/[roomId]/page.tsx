@@ -8,7 +8,7 @@ import { playFanfare } from "@/lib/sounds";
 import { startNextRankedRound, startNextRoyaleRound } from "@/lib/supabase";
 import { applyRankDeltaOnce, getRankSnapshot, rankDeltaForResult, type RankSnapshot } from "@/lib/rank";
 import { supabase } from "@/lib/supabase";
-import { getAuthUser, saveGameResultToDb } from "@/lib/auth";
+import { saveGameResult } from "@/lib/userStore";
 import Avatar, { DEFAULT_AVATAR } from "@/components/Avatar";
 import type { Pose } from "@/lib/game";
 
@@ -163,20 +163,13 @@ export default function ResultsPage({ params }: { params: { roomId: string } }) 
       ? (room as any).player1_score ?? 0
       : (room as any).player2_score ?? 0;
 
-    // Save game stats to DB (idempotent)
-    void saveGameResultToDb(roomId, matchResult, myScore);
+    // Save game stats to DB via userStore (idempotent)
+    void saveGameResult(roomId, matchResult, myScore);
 
-    // Apply rank delta and sync to DB for ranked matches
+    // Apply rank delta (writes to DB via userStore, idempotent per room)
     if (isRanked) {
-      const newRank = applyRankDeltaOnce(roomId, rankDelta);
-      setRank(newRank);
-      getAuthUser().then((user) => {
-        if (user && supabase) {
-          void supabase
-            .from("user_profiles")
-            .update({ rank_points: newRank.points })
-            .eq("id", user.id);
-        }
+      void applyRankDeltaOnce(roomId, rankDelta).then((newRank) => {
+        setRank(newRank);
       });
     } else {
       setRank(getRankSnapshot());

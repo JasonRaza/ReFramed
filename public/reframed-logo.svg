@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 110" width="320" height="110">
+  <!-- Dark background with rounded corners -->
+  <rect x="0" y="0" width="320" height="110" rx="14" ry="14" fill="#141414"/>
+
+  <!-- Top-left frame corner -->
+  <polyline
+    points="18,44  18,18  44,18"
+    fill="none"
+    stroke="#f6b73c"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Bottom-right frame corner -->
+  <polyline
+    points="302,66  302,92  276,92"
+    fill="none"
+    stroke="#f6b73c"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- "Re" in white -->
+  <text
+    x="60"
+    y="72"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="46"
+    font-weight="700"
+    fill="#f0f0ee"
+    letter-spacing="-0.5"
+  >Re</text>
+
+  <!-- "F" in amber -->
+  <text
+    x="131"
+    y="72"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="46"
+    font-weight="700"
+    fill="#f6b73c"
+    letter-spacing="-0.5"
+  >F</text>
+
+  <!-- "ramed" in white -->
+  <text
+    x="157"
+    y="72"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="46"
+    font-weight="700"
+    fill="#f0f0ee"
+    letter-spacing="-0.5"
+  >ramed</text>
+</svg>

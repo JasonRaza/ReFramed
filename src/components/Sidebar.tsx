@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, Trophy, User, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ReFramedMark from "@/components/ReFramedMark";
 
 const NAV_TOP = [
   { icon: LayoutGrid, href: "/",          label: "Accueil" },
@@ -75,7 +76,9 @@ export default function Sidebar() {
           className="mb-7 flex h-11 w-11 items-center justify-center rounded-xl bg-[#f6b73c]/10 border border-[#f6b73c]/20 transition-opacity hover:opacity-80"
           aria-label="Accueil"
         >
-          <span className="text-xl leading-none">🎭</span>
+          <span style={{ color: "var(--text-primary)" }}>
+            <ReFramedMark size={28} />
+          </span>
         </button>
 
         {/* Top nav */}

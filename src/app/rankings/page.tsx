@@ -5,7 +5,6 @@ import { Search, UserPlus, Check, Users, Globe, X } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { supabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/auth";
-import { getRankSnapshot } from "@/lib/rank";
 import { useLocale } from "@/hooks/useLocale";
 import { cn } from "@/lib/utils";
 
@@ -245,12 +244,7 @@ export default function RankingsPage() {
       if (!user) { setLoading(false); return; }
       setMyId(user.id);
 
-      const localPoints = getRankSnapshot().points;
-      await supabase!
-        .from("user_profiles")
-        .update({ rank_points: localPoints })
-        .eq("id", user.id);
-
+      // rank_points are written to DB immediately via userStore — no manual sync needed
       await Promise.all([loadGlobal(user.id), loadFriends(user.id)]);
       setLoading(false);
     }

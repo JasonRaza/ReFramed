@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ModeRow from "@/components/ModeRow";
 import RankBar from "@/components/RankBar";
@@ -10,9 +10,10 @@ import Avatar, {
   getBg,
   parseAvatar,
 } from "@/components/Avatar";
-import { getProfile, saveProfile } from "@/hooks/useGameRoom";
+import { saveProfile as storeSaveProfile, useUserStore } from "@/lib/userStore";
 import { getRankSnapshot, type RankSnapshot } from "@/lib/rank";
 import type { Profile } from "@/lib/game";
+import ReFramedLogo from "@/components/ReFramedLogo";
 
 // ─── Modes ────────────────────────────────────────────────────────────────────
 
@@ -130,9 +131,7 @@ function ModeSelect({
   onEditProfile: () => void;
 }) {
   const router = useRouter();
-  const [rank, setRank] = useState<RankSnapshot>(() => getRankSnapshot());
-
-  useEffect(() => { setRank(getRankSnapshot()); }, []);
+  const rank: RankSnapshot = getRankSnapshot();
 
   const { emoji, colorKey } = parseAvatar(profile.avatar);
   const avatarBg   = getBg(colorKey);
@@ -144,7 +143,9 @@ function ModeSelect({
       {/* ── Header ─────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold leading-tight" style={{ color: "var(--text-primary)" }}>ReFramed</h1>
+          <div style={{ color: "var(--text-primary)" }}>
+            <ReFramedLogo width={130} height={45} />
+          </div>
           <p className="text-[12px] mt-0.5" style={{ color: "var(--text-muted)" }}>Choisis un mode</p>
         </div>
 
@@ -196,27 +197,19 @@ function ModeSelect({
 
 export default function HomePage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [editing, setEditing] = useState(false);
-  const [ready,   setReady]   = useState(false);
-
-  useEffect(() => {
-    setProfile(getProfile());
-    setReady(true);
-  }, []);
-
-  if (!ready) return null;
+  const store  = useUserStore();
 
   function handleDone(p: Profile) {
-    saveProfile(p);
-    setProfile(p);
-    setEditing(false);
+    void storeSaveProfile(p);
   }
 
+  // While store loads from DB, show nothing (AppShell handles the spinner if needed)
+  if (!store.ready) return null;
+
   // Première configuration (pas encore de profil)
-  if (!profile || editing) {
+  if (!store.profile.username || store.profile.username === "Joueur") {
     return <ProfileSetup onDone={handleDone} />;
   }
 
-  return <ModeSelect profile={profile} onEditProfile={() => router.push("/profile")} />;
+  return <ModeSelect profile={store.profile} onEditProfile={() => router.push("/profile")} />;
 }

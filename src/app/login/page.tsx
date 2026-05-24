@@ -12,6 +12,7 @@ import Avatar, {
 import { signIn, signUp } from "@/lib/auth";
 import { saveProfile } from "@/hooks/useGameRoom";
 import type { Profile } from "@/lib/game";
+import ReFramedLogo from "@/components/ReFramedLogo";
 import { cn } from "@/lib/utils";
 
 // ─── Avatar picker (reused in signup) ────────────────────────────────────────
@@ -371,14 +372,11 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-sm space-y-6">
 
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f6b73c]/10 border border-[#f6b73c]/20 text-3xl">
-            🎭
+        <div className="text-center space-y-3">
+          <div className="flex justify-center" style={{ color: "var(--text-primary)" }}>
+            <ReFramedLogo width={200} height={69} />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>ReFramed</h1>
-            <p className="text-[13px] mt-0.5" style={{ color: "var(--text-muted)" }}>Imite la pose. Claude juge.</p>
-          </div>
+          <p className="text-[13px]" style={{ color: "var(--text-muted)" }}>Imite la pose. Claude juge.</p>
         </div>
 
         {/* Card */}

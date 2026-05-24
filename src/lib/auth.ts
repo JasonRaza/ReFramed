@@ -1,60 +1,19 @@
 "use client";
 
 import { supabase } from "./supabase";
+import { initUserStore, clearStore } from "./userStore";
 import type { Profile } from "./game";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type AuthUser = {
-  id: string;
+  id:    string;
   email: string;
 };
 
 export type AuthResult =
   | { ok: true;  user: AuthUser }
   | { ok: false; error: string };
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/** Sync Supabase user ID into localStorage so getPlayerId() returns the right value. */
-function syncPlayerId(userId: string) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("reframed_player_id", userId);
-}
-
-/** Load profile from user_profiles table and sync to localStorage. */
-async function syncProfileFromDb(userId: string): Promise<Profile | null> {
-  if (!supabase) return null;
-  const { data } = await supabase
-    .from("user_profiles")
-    .select("username, avatar")
-    .eq("id", userId)
-    .single();
-  if (!data) return null;
-  const profile: Profile = { username: data.username as string, avatar: data.avatar as string };
-  localStorage.setItem("reframed_profile", JSON.stringify(profile));
-  return profile;
-}
-
-/** Upsert profile + stats in user_profiles table and sync to localStorage. */
-export async function saveProfileToDb(
-  userId: string,
-  profile: Profile,
-): Promise<void> {
-  if (!supabase) return;
-  const games = parseInt(typeof window !== "undefined" ? (localStorage.getItem("rf_total_games") ?? "0") : "0", 10);
-  const wins  = parseInt(typeof window !== "undefined" ? (localStorage.getItem("rf_total_wins")  ?? "0") : "0", 10);
-  const best  = parseInt(typeof window !== "undefined" ? (localStorage.getItem("rf_best_score")  ?? "0") : "0", 10);
-  await supabase.from("user_profiles").upsert({
-    id:           userId,
-    username:     profile.username,
-    avatar:       profile.avatar,
-    games_played: games,
-    wins,
-    best_score:   best,
-  });
-  localStorage.setItem("reframed_profile", JSON.stringify(profile));
-}
 
 // ── Auth actions ──────────────────────────────────────────────────────────────
 
@@ -69,26 +28,15 @@ export async function signIn(
     return { ok: false, error: friendlyError(error?.message) };
   }
 
-  syncPlayerId(data.user.id);
-  let profile = await syncProfileFromDb(data.user.id);
+  // Load all user data from DB into the store
+  await initUserStore();
 
-  // If profile doesn't exist in DB yet (e.g. signed up with email confirmation),
-  // try to push the locally saved profile to DB now that we have a session.
-  if (!profile) {
-    const raw = typeof window !== "undefined" ? localStorage.getItem("reframed_profile") : null;
-    if (raw) {
-      try {
-        const local = JSON.parse(raw) as Profile;
-        await saveProfileToDb(data.user.id, local);
-        profile = local;
-      } catch { /* ignore */ }
-    }
-  }
-
+  // Check if profile exists (store will have default username if not)
+  const needsProfile = !data.user;
   return {
     ok: true,
     user: { id: data.user.id, email: data.user.email ?? email },
-    needsProfile: !profile,
+    needsProfile,
   };
 }
 
@@ -100,15 +48,13 @@ export async function signUp(
   if (!supabase) return { ok: false, error: "Supabase non configuré." };
 
   const { data, error } = await supabase.auth.signUp({ email, password });
-  console.log("[auth] signUp response — user:", data.user?.id ?? null, "session:", !!data.session, "error:", error);
+  console.log("[auth] signUp — user:", data.user?.id ?? null, "session:", !!data.session, "error:", error);
 
   if (error) {
     console.error("[auth] signUp error:", error);
     return { ok: false, error: friendlyError(error.message) };
   }
 
-  // Supabase returns user:null (no error) when the email is already registered
-  // but not yet confirmed — it silently swallows it to prevent enumeration.
   if (!data.user) {
     return {
       ok: false,
@@ -116,26 +62,35 @@ export async function signUp(
     };
   }
 
-  // Always persist profile to localStorage so the app works immediately
-  localStorage.setItem("reframed_profile", JSON.stringify(profile));
-  syncPlayerId(data.user.id);
-
   if (!data.session) {
-    // Email confirmation is required — profile will be synced to DB after confirmation + sign-in
-    return { ok: true, needsConfirmation: true, user: { id: data.user.id, email: data.user.email ?? email } };
+    // Email confirmation required — save profile to DB for when they confirm
+    await supabase.from("user_profiles").upsert({
+      id:       data.user.id,
+      username: profile.username,
+      avatar:   profile.avatar,
+    });
+    return {
+      ok: true,
+      needsConfirmation: true,
+      user: { id: data.user.id, email: data.user.email ?? email },
+    };
   }
 
-  // Session is active (email confirmation disabled) — save to DB right away
-  await saveProfileToDb(data.user.id, profile);
+  // Session is active — upsert profile and init store
+  await supabase.from("user_profiles").upsert({
+    id:       data.user.id,
+    username: profile.username,
+    avatar:   profile.avatar,
+  });
+  await initUserStore();
+
   return { ok: true, user: { id: data.user.id, email: data.user.email ?? email } };
 }
 
 export async function signOut(): Promise<void> {
   if (!supabase) return;
   await supabase.auth.signOut();
-  // Keep player_id and profile in localStorage so a guest session starts fresh
-  localStorage.removeItem("reframed_player_id");
-  localStorage.removeItem("reframed_profile");
+  clearStore();
 }
 
 /** Returns the current authenticated user, or null if not logged in. */
@@ -145,42 +100,6 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   const user = data.session?.user;
   if (!user) return null;
   return { id: user.id, email: user.email ?? "" };
-}
-
-// ── Game stats ────────────────────────────────────────────────────────────────
-
-const STATS_APPLIED_KEY = "reframed_stats_applied_rooms";
-
-function statsAppliedRooms(): Set<string> {
-  if (typeof window === "undefined") return new Set();
-  try {
-    return new Set(JSON.parse(localStorage.getItem(STATS_APPLIED_KEY) ?? "[]") as string[]);
-  } catch {
-    return new Set();
-  }
-}
-
-/**
- * Records a game result in the database (total_games, total_wins, best_score).
- * Idempotent per roomId — safe to call on page reload.
- */
-export async function saveGameResultToDb(
-  roomId: string,
-  result: "win" | "loss" | "draw",
-  score: number,
-): Promise<void> {
-  if (typeof window === "undefined" || !supabase) return;
-
-  const rooms = statsAppliedRooms();
-  if (rooms.has(roomId)) return;
-
-  await supabase.rpc("record_game_result", {
-    p_won:   result === "win",
-    p_score: score,
-  });
-
-  rooms.add(roomId);
-  localStorage.setItem(STATS_APPLIED_KEY, JSON.stringify(Array.from(rooms).slice(-50)));
 }
 
 // ── Error messages ────────────────────────────────────────────────────────────
@@ -198,10 +117,8 @@ function friendlyError(msg?: string): string {
     return "Le mot de passe doit faire au moins 6 caractères.";
   if (m.includes("unable to validate"))
     return "Email ou mot de passe invalide.";
-  // Supabase free-tier email rate limit ("Email rate limit exceeded", "over_email_send_rate_limit")
   if (m.includes("rate limit") || m.includes("over_email") || m.includes("email rate"))
     return "Limite d'emails atteinte (quota Supabase gratuit). Solution : désactive la confirmation d'email dans le dashboard Supabase → Auth → Providers → Email.";
-  // Supabase OTP/cooldown ("For security purposes, you can only request this after X seconds")
   if (m.includes("security purposes") || m.includes("request this after"))
     return "Trop de tentatives — attends quelques secondes et réessaie.";
   if (m.includes("sending confirmation") || (m.includes("send") && m.includes("email")))
